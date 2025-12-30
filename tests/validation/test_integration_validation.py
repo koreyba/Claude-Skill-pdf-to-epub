@@ -32,7 +32,15 @@ class TestIntegrationValidation(unittest.TestCase):
         result = checker.check()
         
         print(f"\n[INTEGRATION] Baseline Score: {result.completeness_score:.2f}%")
+        print(f"[INTEGRATION] Baseline Order: {result.order_score:.2f}%")
         self.assertGreaterEqual(result.completeness_score, 99.9, "Baseline should be near 100%")
+        
+        # Known Issue: The PDF extraction (fitz blocks) reads complex layout (sidebars/footnotes)
+        # in a different order than the sanitized linear EPUB. 
+        # The calculated order score is consistently around ~82.8%.
+        # We assert this specific range to catch regressions in BOTH directions.
+        self.assertGreaterEqual(result.order_score, 80.0, "Baseline order is suspiciously low (<80%)")
+        self.assertLess(result.order_score, 85.0, "Baseline order unexpectedly improved (>85%). Did extractor logic change?")
 
     def test_sensitivity_small_loss(self):
         """Intentionally remove 5% of text and verify the checker catches it."""
@@ -59,6 +67,31 @@ class TestIntegrationValidation(unittest.TestCase):
         # Score should be around 50-60%
         self.assertLess(result.completeness_score, 70.0)
         self.assertGreater(len(result.missing_chunks), 50)
+
+    def test_sensitivity_reordering(self):
+        """Intentionally scramble text chunks and verify order score drops."""
+        # Split text into 10 big blocks and shuffle them
+        blocks = []
+        block_size = len(self.target_text) // 10
+        for i in range(10):
+            start = i * block_size
+            end = start + block_size if i < 9 else len(self.target_text)
+            blocks.append(self.target_text[start:end])
+            
+        import random
+        # Seed for reproducibility
+        rng = random.Random(42)
+        rng.shuffle(blocks)
+        scrambled_text = "".join(blocks)
+        
+        checker = CompletenessChecker(self.source_text, scrambled_text)
+        result = checker.check()
+        
+        print(f"[INTEGRATION] Scrambled Order Score: {result.order_score:.2f}%")
+        
+        # Completeness should still be high (text is there), but Order should be low
+        self.assertGreater(result.completeness_score, 85.0, "Scrambling shouldn't affect completeness much")
+        self.assertLess(result.order_score, 40.0, "Scrambling MUST drop order score")
 
 if __name__ == "__main__":
     unittest.main()

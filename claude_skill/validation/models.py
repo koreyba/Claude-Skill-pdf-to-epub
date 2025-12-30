@@ -18,3 +18,12 @@ class ValidationResult:
     completeness_score: float  # 0.0 to 100.0
     missing_chunks: List[ValidationFailure]
     total_chunks: int
+    found_chunks: List['FoundChunk'] = None  # To be populated by completeness checker
+    order_score: float = 100.0   # Default to 100 until calculated
+
+@dataclass(frozen=True)
+class FoundChunk:
+    """Represents a chunk that was successfully found."""
+    chunk: Chunk
+    start_pos: int  # Position in the target document
+    match_type: str = "exact" # "exact" or "fuzzy"

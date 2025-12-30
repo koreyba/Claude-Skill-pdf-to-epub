@@ -7,7 +7,8 @@ import re
 from typing import List, Optional
 from claude_skill.core.text_segmenter import segment_text, normalize_whitespace
 from claude_skill.core.utils import get_logger, DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP
-from claude_skill.validation.models import ValidationFailure, ValidationResult
+from claude_skill.validation.models import ValidationFailure, ValidationResult, FoundChunk
+from claude_skill.validation.order_checker import OrderChecker
 
 logger = get_logger(__name__)
 
@@ -45,6 +46,8 @@ class CompletenessChecker:
             return ValidationResult(is_valid=True, completeness_score=100.0, missing_chunks=[], total_chunks=0)
 
         missing_failures = []
+        missing_failures = []
+        found_chunks_list = []
         found_count = 0
         
         # 2. Optimized search loop
@@ -66,12 +69,16 @@ class CompletenessChecker:
                 # Exact match found! Update cursor
                 found_count += 1
                 current_pos = idx + len(chunk.text)
+                found_chunks_list.append(FoundChunk(chunk, idx, "exact"))
             else:
                 # Try fuzzy matching (token-based)
-                if self._fuzzy_check(chunk.text, current_pos):
+                fuzzy_idx = self._fuzzy_check(chunk.text, current_pos)
+                if fuzzy_idx != -1:
                     found_count += 1
-                    # Note: we don't update current_pos here to be safe, 
-                    # or we could approximate it. Let's stay safe.
+                    # Note: We do NOT update current_pos here. Fuzzy match positions are unstable.
+                    # Jumping ahead based on a fuzzy guess can cause us to skip valid Exact Matches later.
+                    # We accept the found chunk but keep searching from the same reliable anchor.
+                    found_chunks_list.append(FoundChunk(chunk, fuzzy_idx, "fuzzy"))
                 elif len(chunk.text.strip()) >= self.min_significant_len:
                     missing_failures.append(ValidationFailure(
                         chunk=chunk,
@@ -88,38 +95,66 @@ class CompletenessChecker:
         # Note: completeness score is based on ALL chunks (including noise).
         # But is_valid depends on missing_failures (significant content).
         score = (found_count / total_chunks) * 100.0
+        
+        # 4. Check Order
+        order_checker = OrderChecker(found_chunks_list)
+        order_score = order_checker.check()
+        
+        # Validity primarily depends on content completeness.
+        # Order issues are warnings/quality metrics but don't strictly invalidate the content existence.
         is_valid = len(missing_failures) == 0
+        
+        if order_score < 98.0:
+             logger.warning(f"Order check quality low! Score: {order_score:.2f}% (Threshold: 98%)")
 
-        logger.info(f"Completeness check finished. Score: {score:.2f}%. Failures: {len(missing_failures)}")
+        logger.info(f"Validation finished. Completeness: {score:.2f}%. Order: {order_score:.2f}%. Failures: {len(missing_failures)}")
         
         return ValidationResult(
             is_valid=is_valid,
             completeness_score=score,
             missing_chunks=missing_failures,
-            total_chunks=total_chunks
+            total_chunks=total_chunks,
+            found_chunks=found_chunks_list,
+            order_score=order_score
         )
 
-    def _fuzzy_check(self, text: str, start_pos: int, threshold: float = 0.85) -> bool:
+    def _fuzzy_check(self, text: str, start_pos: int, threshold: float = 0.85) -> int:
         """
-        Performs a token-based check to see if most of the text exists in the target.
-        Helps ignore small extraction artifacts like page numbers mid-sentence.
+        Performs a token-based check. Returns estimated start position if found, else -1.
         """
         # Extract words (tokens) of significant length
         tokens = re.findall(r'\w{4,}', text)
         if not tokens:
-            return False
+            # If no tokens to check, treat as not found
+            return -1
             
         found_tokens = 0
-        # For performance, we only search in a window around the current position
-        # if start_pos is provided, otherwise full search.
-        # Window: 5000 chars should be plenty for a 600-char chunk.
-        search_window = self.target_text[start_pos : start_pos + 10000]
-        if len(search_window) < len(text):
-            search_window = self.target_text # Fallback to full text if window is too small
-            
+        search_start = start_pos
+        window_size = 10000
+        
+        if start_pos + len(text) > len(self.target_text) or len(self.target_text[search_start : search_start + window_size]) < len(text):
+             # Fallback to full text if window is too small or at end
+             search_window = self.target_text
+             search_start = 0
+        else:
+             search_window = self.target_text[search_start : search_start + window_size]
+        
+        # Very simple heuristic: just check presence. 
+        # For meaningful position, we need to find WHERE the first few tokens are.
+        # But for strictly Completeness, simple presence was enough.
+        # For Order, we need an anchor. Let's try to find the index of the first matched token.
+        
+        first_token_idx = -1
+        
         for token in tokens:
-            if token in search_window:
+            local_idx = search_window.find(token)
+            if local_idx != -1:
                 found_tokens += 1
+                if first_token_idx == -1:
+                    first_token_idx = search_start + local_idx
         
         match_rate = found_tokens / len(tokens)
-        return match_rate >= threshold
+        
+        if match_rate >= threshold:
+            return first_token_idx if first_token_idx != -1 else start_pos
+        return -1

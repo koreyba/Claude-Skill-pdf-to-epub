@@ -12,12 +12,16 @@
 - [x] Создать `claude_skill/core/epub_extractor.py` (извлечение данных из EPUB)
 - [x] Протестировать извлечение на реальных файлах.
 
-## Фаза 3: Валидация (Validation) — В ПРОЦЕССЕ 🔄
-- [x] Создать `claude_skill/validation/completeness_checker.py` (проверка полноты текста)
-    - [x] Реализовать нечеткий поиск (Fuzzy Match) для устойчивости к артефактам.
-    - [x] Достичь 100% покрытия текста на реальных фикстурах.
-- [ ] Создать `claude_skill/validation/order_checker.py` (проверка порядка текста)
-- [ ] Создать `claude_skill/validation/validator.py` (главный оркестратор валидации)
+### Phase 3: Validation & Checking (Status: **COMPLETED**)
+- [x] **Completeness Checker**
+    - [x] Comparison Algorithm (Sliding Window + Fuzzy Match).
+    - [x] Robustness Tests (Sensitivity checks).
+- [x] **Order Checker**
+    - [x] LIS Algorithm for sequence validation.
+    - [x] Integration into Completeness Checker.
+- [x] **Validator Orchestrator**
+    - [x] Integrate Completeness and Order checkers.
+    - [x] Comprehensive validation on real fixtures.
 
 ## Фаза 4: Анализ структуры (Analysis)
 - [ ] Создать `claude_skill/conversion/detectors/reading_order.py` (алгоритмы порядка чтения)
