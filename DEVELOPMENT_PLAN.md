@@ -2,15 +2,14 @@
 
 ## Фаза 1: Фундамент (Foundation)
 - [x] Создать `claude_skill/core/utils.py` (общие утилиты)
-- [ ] Создать `claude_skill/core/text_segmenter.py` (сегментация текста)
-- [ ] Создать `claude_skill/validation/text_canonicalizer.py` (нормализация текста)
-- [ ] Протестировать базовую сегментацию и канонизацию текста.
+- [x] Создать `claude_skill/core/text_segmenter.py` (сегментация текста)
+- [x] Создать `claude_skill/validation/text_canonicalizer.py` (нормализация текста)
+- [x] Протестировать базовую сегментацию и канонизацию текста.
 
 ## Фаза 2: Экстракция (Extraction)
-- [ ] Создать `claude_skill/core/pdf_extractor.py` (извлечение данных из PDF)
-- [ ] Создать `claude_skill/core/epub_extractor.py` (извлечение данных из EPUB)
-- [ ] Создать `claude_skill/core/epub_builder.py` (сборка EPUB файла)
-- [ ] Протестировать чтение PDF и создание простейшего EPUB.
+- [x] Создать `claude_skill/core/pdf_extractor.py` (извлечение данных из PDF)
+- [x] Создать `claude_skill/core/epub_extractor.py` (извлечение данных из EPUB)
+- [x] Протестировать извлечение на реальных файлах.
 
 ## Фаза 3: Валидация (Validation)
 - [ ] Создать `claude_skill/validation/completeness_checker.py` (проверка полноты текста)

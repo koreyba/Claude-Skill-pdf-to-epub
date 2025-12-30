@@ -1,0 +1,11 @@
+{
+  "name": "pdf-to-epub-skill",
+  "version": "0.1.0",
+  "description": "PDF to EPUB Converter Tool",
+  "scripts": {
+    "test": ".venv\\Scripts\\python.exe -m pytest",
+    "test:v": ".venv\\Scripts\\python.exe -m pytest -v"
+  },
+  "author": "",
+  "license": "ISC"
+}
