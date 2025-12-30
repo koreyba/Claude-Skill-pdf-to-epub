@@ -1,7 +1,7 @@
 {
   "version": "0.4.2",
   "environments": [
-    "gemini"
+    "github"
   ],
   "initializedPhases": [
     "requirements",
@@ -13,5 +13,5 @@
     "monitoring"
   ],
   "createdAt": "2025-12-30T09:30:44.228Z",
-  "updatedAt": "2025-12-30T09:31:38.701Z"
+  "updatedAt": "2025-12-30T16:02:47.062Z"
 }

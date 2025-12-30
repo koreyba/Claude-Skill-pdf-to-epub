@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "description": "PDF to EPUB Converter Tool",
   "scripts": {
-    "test": ".venv\\Scripts\\python.exe -m pytest",
-    "test:v": ".venv\\Scripts\\python.exe -m pytest -v"
+    "test": ".venv/Scripts/python -m pytest",
+    "test:v": ".venv/Scripts/python -m pytest -v",
+    "test:cov": ".venv/Scripts/python -m pytest --cov=claude_skill.conversion --cov-report=term-missing",
+    "test:conversion": ".venv/Scripts/python -m pytest tests/conversion/ -v",
+    "test:validation": ".venv/Scripts/python -m pytest tests/validation/ -v",
+    "test:core": ".venv/Scripts/python -m pytest tests/core/ -v",
+    "test:watch": ".venv/Scripts/python -m pytest --tb=short -q"
   },
   "author": "",
   "license": "ISC"

@@ -1,30 +1,158 @@
 """Base class for conversion strategies."""
 
-class BaseStrategy:
+from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import List, Tuple
+
+# Import types that will be defined in models.py
+# For now, we'll use forward references
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from claude_skill.conversion.models import ConversionConfig, StructuredContent, ImageResource, BookMetadata
+    from claude_skill.conversion.detectors.models import TextBlock
+
+
+class BaseStrategy(ABC):
     """
-    Base conversion strategy.
+    Abstract base class for conversion strategies.
     
-    Defines the interface for all conversion strategies (simple, academic, nonfiction).
+    Defines the interface and template method for all conversion strategies.
+    Subclasses must implement extract(), order_blocks(), and detect_structure().
+    
+    The convert() method implements the Template Method pattern, calling hooks
+    in a specific order: extract → order_blocks → detect_structure.
     """
     
-    def __init__(self, config: dict = None):
+    def convert(self, pdf_path: Path, config: 'ConversionConfig') -> 'StructuredContent':
         """
-        Initialize strategy with optional configuration.
+        Template method that orchestrates the conversion workflow.
+        
+        This method defines the overall algorithm and calls hook methods
+        that subclasses override to customize behavior.
+        
+        Workflow:
+        1. Extract text blocks, images, and metadata from PDF
+        2. Order blocks into reading order
+        3. Detect document structure (chapters, headings)
         
         Args:
-            config: Configuration dictionary for the strategy
-        """
-        self.config = config or {}
-    
-    def convert(self, pdf_path: str, output_path: str) -> dict:
-        """
-        Convert PDF to EPUB.
-        
-        Args:
-            pdf_path: Path to input PDF file
-            output_path: Path for output EPUB file
+            pdf_path: Path to the input PDF file
+            config: Conversion configuration
             
         Returns:
-            dict: Conversion result with status and metadata
+            StructuredContent: Structured representation of the document
+            
+        Raises:
+            ValueError: If config is invalid
+            FileNotFoundError: If PDF does not exist
         """
-        raise NotImplementedError("Subclasses must implement convert()")
+        # Validate inputs
+        if not pdf_path.exists():
+            raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+        
+        self._validate_config(config)
+        
+        # Step 1: Extract text blocks, images, and metadata
+        blocks, images, metadata = self.extract(pdf_path, config)
+        
+        # Step 2: Order blocks into reading order
+        ordered_blocks, confidence = self.order_blocks(blocks, config)
+        
+        # Step 3: Detect structure (chapters, headings, etc.)
+        structured_content = self.detect_structure(ordered_blocks, config, images, metadata)
+        
+        # Add reading order confidence to result
+        structured_content.reading_order_confidence = confidence
+        
+        return structured_content
+    
+    @abstractmethod
+    def extract(self, pdf_path: Path, config: 'ConversionConfig') -> Tuple[List['TextBlock'], List['ImageResource'], 'BookMetadata']:
+        """
+        Extract text blocks, images, and metadata from PDF.
+        
+        Hook method for customizing text extraction.
+        Subclasses can override to add custom extraction logic.
+        
+        Args:
+            pdf_path: Path to the input PDF file
+            config: Conversion configuration
+            
+        Returns:
+            Tuple of (text_blocks, images, metadata)
+            
+        Raises:
+            NotImplementedError: Must be implemented by subclasses
+        """
+        raise NotImplementedError("Subclasses must implement extract()")
+    
+    @abstractmethod
+    def order_blocks(
+        self, 
+        blocks: List['TextBlock'], 
+        config: 'ConversionConfig'
+    ) -> Tuple[List['TextBlock'], float]:
+        """
+        Order text blocks into reading order.
+        
+        Hook method for customizing reading order detection.
+        Different strategies may use different algorithms (Y-sort, XY-cut, etc.).
+        
+        Args:
+            blocks: List of extracted text blocks
+            config: Conversion configuration
+            
+        Returns:
+            Tuple of (ordered blocks, confidence score 0.0-1.0)
+            
+        Raises:
+            NotImplementedError: Must be implemented by subclasses
+        """
+        raise NotImplementedError("Subclasses must implement order_blocks()")
+    
+    @abstractmethod
+    def detect_structure(
+        self, 
+        blocks: List['TextBlock'], 
+        config: 'ConversionConfig',
+        images: List['ImageResource'],
+        metadata: 'BookMetadata'
+    ) -> 'StructuredContent':
+        """
+        Detect document structure from ordered blocks.
+        
+        Hook method for customizing structure detection.
+        Identifies chapters, headings, footnotes, and builds hierarchical structure.
+        
+        Args:
+            blocks: List of ordered text blocks
+            config: Conversion configuration
+            images: List of extracted images
+            metadata: Extracted book metadata
+            
+        Returns:
+            StructuredContent with chapters, metadata, images
+            
+        Raises:
+            NotImplementedError: Must be implemented by subclasses
+        """
+        raise NotImplementedError("Subclasses must implement detect_structure()")
+    
+    def _validate_config(self, config: 'ConversionConfig') -> None:
+        """
+        Validate conversion configuration.
+        
+        Basic validation is performed here. Subclasses can override
+        to add strategy-specific validation.
+        
+        Args:
+            config: Conversion configuration to validate
+            
+        Raises:
+            ValueError: If configuration is invalid
+        """
+        if config is None:
+            raise ValueError("Configuration cannot be None")
+        
+        # Additional validation can be added by subclasses

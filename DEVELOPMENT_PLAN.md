@@ -34,13 +34,15 @@
 - [x] Создать `claude_skill/conversion/pdf_analyzer.py` (анализ PDF и генерация конфига)
 - [x] Протестировать автоматический анализ структуры PDF.
 
-## Фаза 5: Конвертация (Conversion)
-- [ ] Создать `claude_skill/conversion/strategies/base_strategy.py` (базовый класс стратегий)
-- [ ] Создать `claude_skill/conversion/strategies/simple_strategy.py` (стратегия для художественной литературы)
-- [ ] Создать `claude_skill/conversion/converter.py` (главный оркестратор конвертации)
+## Фаза 5: Конвертация (Conversion) — ЗАВЕРШЕНО ✅
+- [x] Создать `claude_skill/conversion/strategies/base_strategy.py` (базовый класс стратегий)
+- [x] Создать `claude_skill/conversion/strategies/simple_strategy.py` (стратегия для художественной литературы)
+- [x] Создать `claude_skill/conversion/converter.py` (главный оркестратор конвертации)
+- [x] Создать `claude_skill/core/epub_builder.py` (EPUB3 builder)
+- [x] Создать все 12 data models (models.py)
 - [ ] Протестировать полный цикл конвертации PDF -> EPUB.
 
-## Фаза 6: Интерфейс и Интеграция (CLI)
-- [ ] Создать `scripts/analyze.py` (CLI для анализа)
-- [ ] Создать `scripts/convert.py` (CLI для конвертации)
-- [ ] Создать `scripts/validate.py` (CLI для валидации)
+## Фаза 6: Интерфейс и Интеграция (CLI) — ЗАВЕРШЕНО ✅
+- [x] Создать `scripts/analyze.py` (CLI для анализа)
+- [x] Создать `scripts/convert.py` (CLI для конвертации)
+- [x] Создать `scripts/validate.py` (CLI для валидации)

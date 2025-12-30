@@ -43,8 +43,14 @@ class StructureBuilder:
                 
                 # Logic to place this chapter in the tree
                 # Pop stack until we find a parent with level < current level
-                while current_stack and current_stack[-1].level >= level:
-                    current_stack.pop()
+                # Special case: H1 always goes to root (never nested under Intro)
+                if level == 1:
+                    # Clear stack for H1, it's always a root chapter
+                    current_stack.clear()
+                else:
+                    # Pop stack until we find a parent with level < current level
+                    while current_stack and current_stack[-1].level >= level:
+                        current_stack.pop()
                     
                 if not current_stack:
                     # Top level chapter (or strictly > previous top)
@@ -66,8 +72,8 @@ class StructureBuilder:
                     # Should not happen due to preamble, but safety check
                     pass
                     
-        # Cleanup: Remove preamble if empty
-        if len(root_chapters) > 1 and not root_chapters[0].content_blocks and not root_chapters[0].subchapters:
+        # Cleanup: Remove preamble if empty and there are other chapters, or if it's the only one and empty
+        if root_chapters and root_chapters[0].title == "Intro" and not root_chapters[0].content_blocks and not root_chapters[0].subchapters:
             root_chapters.pop(0)
             
         return root_chapters

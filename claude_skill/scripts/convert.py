@@ -3,6 +3,8 @@ import argparse
 import sys
 from pathlib import Path
 
+from claude_skill.conversion.converter import Converter
+
 
 def main():
     """Convert PDF to EPUB."""
@@ -20,7 +22,7 @@ def main():
     )
     parser.add_argument(
         "-s", "--strategy",
-        choices=["simple", "academic", "nonfiction"],
+        choices=["simple"],  # TODO: add "academic" when implemented
         default="simple",
         help="Conversion strategy (default: simple)"
     )
@@ -39,22 +41,61 @@ def main():
     
     args = parser.parse_args()
     
-    # TODO: Implement conversion
-    # from claude_skill.conversion.converter import Converter
-    # converter = Converter(strategy=args.strategy)
-    # result = converter.convert(args.pdf_file, args.output, config=args.config)
+    # Convert paths
+    pdf_path = Path(args.pdf_file)
+    output_path = Path(args.output) if args.output else pdf_path.with_suffix('.epub')
+    config_path = Path(args.config) if args.config else None
     
-    print(f"Converting {args.pdf_file} to EPUB...")
+    # Validate input
+    if not pdf_path.exists():
+        print(f"Error: PDF file not found: {pdf_path}", file=sys.stderr)
+        return 1
+    
+    # Create converter
+    print(f"Converting {pdf_path} to EPUB...")
     print(f"Strategy: {args.strategy}")
-    print("⚠️  Converter not yet implemented (Phase 5)")
-    print("This will:")
-    print("  1. Extract text blocks from PDF")
-    print("  2. Order blocks by reading order")
-    print("  3. Detect structure (chapters, footnotes)")
-    print("  4. Build EPUB file")
-    if args.validate:
-        print("  5. Validate result")
-    return 1
+    
+    try:
+        converter = Converter(strategy=args.strategy)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    
+    # Run conversion
+    result = converter.convert(
+        pdf_path=pdf_path,
+        output_path=output_path,
+        config_path=config_path
+    )
+    
+    # Print results
+    print(f"\n{'='*60}")
+    print(f"Status: {result.status.upper()}")
+    print(f"{'='*60}")
+    
+    if result.status in ["success", "warning"]:
+        print(f"[OK] EPUB created: {result.epub_path}")
+        print(f"[OK] Reading order confidence: {result.reading_order_confidence:.2%}")
+    
+    if result.log.warnings:
+        print(f"\nWarnings:")
+        for warning in result.log.warnings:
+            print(f"  [!] {warning}")
+    
+    if result.log.errors:
+        print(f"\nErrors:")
+        for error in result.log.errors:
+            print(f"  [X] {error}")
+    
+    # Validation
+    if args.validate and result.status in ["success", "warning"]:
+        print("\n" + "="*60)
+        print("Running validation...")
+        print("="*60)
+        # TODO: Implement validation call
+        print("[!] Validation not yet integrated")
+    
+    return 0 if result.status != "failed" else 1
 
 
 if __name__ == "__main__":

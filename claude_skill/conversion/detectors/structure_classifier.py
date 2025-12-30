@@ -144,7 +144,8 @@ class StructureClassifier:
         # Simple heuristic
         if text.startswith("•") or text.startswith("- "):
             return True
-        # Check "1. ", "2. "
-        if len(text) > 2 and text[0].isdigit() and text[1] == '.' and text[2] == ' ':
+        # Check "1. ", "2. ", "10. ", etc.
+        import re
+        if re.match(r'^\d+\.\s', text):
             return True
         return False
