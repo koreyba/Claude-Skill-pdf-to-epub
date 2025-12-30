@@ -7,7 +7,7 @@ class TestEPUBExtractor(unittest.TestCase):
     
     def setUp(self):
         # Real file path provided by user
-        self.test_epub = Path("tests/fixtures/Wilber_The_Ways_We_Are_in_This_Together_WITH_IMAGES.epub")
+        self.test_epub = Path("tests/fixtures/Excerpt_B_The_Many_Ways_We_Touch-3.epub")
 
     def test_clean_html_basic(self):
         # We need an instance to test private method, but it needs a valid path to init

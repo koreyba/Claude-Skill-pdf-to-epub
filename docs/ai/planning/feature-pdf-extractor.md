@@ -1,5 +1,5 @@
 ---
-phase: planning
+phase: completed
 title: Planning - PDF Extractor
 description: Task breakdown for PDF extraction module.
 ---
@@ -9,42 +9,39 @@ description: Task breakdown for PDF extraction module.
 ## Milestones
 **What are the major checkpoints?**
 
-- [ ] Milestone 1: Library integration and basic extraction.
-- [ ] Milestone 2: Paragraph reconstruction and canonicalization.
-- [ ] Milestone 3: Unit tests with mock/sample PDFs.
+- [x] Milestone 1: Library integration and basic extraction (Done).
+- [x] Milestone 2: Paragraph reconstruction and canonicalization (Done).
+- [x] Milestone 3: Unit tests and integration with real fixtures (Done).
+- [x] Milestone 4: Smart Noise Removal (Headers/Footers) (Done).
 
 ## Task Breakdown
 **What specific work needs to be done?**
 
 ### Phase 1: Foundation
-- [ ] Task 1.1: Install `pymupdf` in `.venv`. (Done)
-- [ ] Task 1.2: Implement `PDFExtractor` class skeleton with resource management (context manager).
-- [ ] Task 1.3: Implement text extraction using `page.get_text("blocks")`.
-- [ ] Task 1.4: Add `iter_pages` for memory-efficient processing.
+- [x] Task 1.1: Install `pymupdf` in `.venv`. (Done)
+- [x] Task 1.2: Implement `PDFExtractor` class skeleton with resource management (context manager).
+- [x] Task 1.3: Implement text extraction using `page.get_text("blocks")`.
+- [x] Task 1.4: Add `iter_pages` for memory-efficient processing.
 
 ### Phase 2: Refinement
-- [ ] Task 2.1: Implement smart block joining logic for paragraphs.
-- [ ] Task 2.2: Integrate `canonicalize` from `validation.text_canonicalizer`.
-- [ ] Task 2.3: Extract metadata and handle encryption/corruption errors.
+- [x] Task 2.1: Implement smart block joining logic for paragraphs.
+- [x] Task 2.2: Integrate `canonicalize` from `validation.text_canonicalizer`.
+- [x] Task 2.3: Extract metadata and handle encryption/corruption errors.
 
-### Phase 3: Testing
-- [ ] Task 3.1: Write unit tests. Note: we might need a small sample PDF or use mocks for fitz objects.
+### Phase 3: Advanced Extraction (Added during Phase 3 Validation)
+- [x] Task 3.1: Implement `_identify_noise_patterns` using statistical analysis of repeated lines.
+- [x] Task 3.2: Implement regex-based stripping of page numbers and copyrights.
+- [x] Task 3.3: Strip noise patterns from within text blocks to handle embedded artifacts.
 
-## Dependencies
-**What needs to happen in what order?**
-
-- Depends on `PyMuPDF` library.
-- Depends on `text_canonicalizer` (Completed).
+### Phase 4: Testing
+- [x] Task 4.1: Unit tests for basic extraction logic.
+- [x] Task 4.2: Integration test showing 100% text recovery after noise removal.
 
 ## Timeline & Estimates
-**When will things be done?**
-
-- Tasks 1.1-1.3: 1 hour.
-- Tasks 2.1-2.3: 2 hours.
-- Testing: 1.5 hours.
+- Completed 2025-12-30.
 
 ## Risks & Mitigation
-**What could go wrong?**
-
 - **Risk:** Poor reading order in multi-column PDFs.
-- **Mitigation:** Use `page.get_text("blocks")` to respect layout blocks.
+- **Mitigation:** Used `page.get_text("blocks", sort=True)` to respect layout blocks.
+- **Risk:** Recurrent noise (headers/footers) breaking validation.
+- **Mitigation:** Implemented heuristic-based identification and removal of recurring lines.

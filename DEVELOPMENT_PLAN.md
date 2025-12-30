@@ -1,21 +1,23 @@
 # План разработки PDF to EPUB Converter
 
-## Фаза 1: Фундамент (Foundation)
+## Фаза 1: Фундамент (Foundation) — ЗАВЕРШЕНО ✅
 - [x] Создать `claude_skill/core/utils.py` (общие утилиты)
 - [x] Создать `claude_skill/core/text_segmenter.py` (сегментация текста)
 - [x] Создать `claude_skill/validation/text_canonicalizer.py` (нормализация текста)
 - [x] Протестировать базовую сегментацию и канонизацию текста.
 
-## Фаза 2: Экстракция (Extraction)
+## Фаза 2: Экстракция (Extraction) — ЗАВЕРШЕНО ✅
 - [x] Создать `claude_skill/core/pdf_extractor.py` (извлечение данных из PDF)
+    - [x] Реализовать умное удаление шума (колонтитулы, номера страниц).
 - [x] Создать `claude_skill/core/epub_extractor.py` (извлечение данных из EPUB)
 - [x] Протестировать извлечение на реальных файлах.
 
-## Фаза 3: Валидация (Validation)
-- [ ] Создать `claude_skill/validation/completeness_checker.py` (проверка полноты текста)
+## Фаза 3: Валидация (Validation) — В ПРОЦЕССЕ 🔄
+- [x] Создать `claude_skill/validation/completeness_checker.py` (проверка полноты текста)
+    - [x] Реализовать нечеткий поиск (Fuzzy Match) для устойчивости к артефактам.
+    - [x] Достичь 100% покрытия текста на реальных фикстурах.
 - [ ] Создать `claude_skill/validation/order_checker.py` (проверка порядка текста)
 - [ ] Создать `claude_skill/validation/validator.py` (главный оркестратор валидации)
-- [ ] Протестировать флоу валидации на синтетических данных.
 
 ## Фаза 4: Анализ структуры (Analysis)
 - [ ] Создать `claude_skill/conversion/detectors/reading_order.py` (алгоритмы порядка чтения)
@@ -33,4 +35,3 @@
 - [ ] Создать `scripts/analyze.py` (CLI для анализа)
 - [ ] Создать `scripts/convert.py` (CLI для конвертации)
 - [ ] Создать `scripts/validate.py` (CLI для валидации)
-- [ ] Протестировать сквозной флоу через командную строку.
