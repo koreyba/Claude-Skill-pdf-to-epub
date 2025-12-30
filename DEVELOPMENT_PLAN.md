@@ -23,11 +23,16 @@
     - [x] Integrate Completeness and Order checkers.
     - [x] Comprehensive validation on real fixtures.
 
-## Фаза 4: Анализ структуры (Analysis)
-- [ ] Создать `claude_skill/conversion/detectors/reading_order.py` (алгоритмы порядка чтения)
-- [ ] Создать `claude_skill/conversion/detectors/heading_detector.py` (определение заголовков)
-- [ ] Создать `claude_skill/conversion/pdf_analyzer.py` (анализ PDF и генерация конфига)
-- [ ] Протестировать автоматический анализ структуры PDF.
+### Phase 4: Content Analysis (Structure Analyzer) - **COMPLETED**
+- **Goal:** Intelligent structure detection (Chapters, Footnotes).
+- **Tasks:**
+    - [x] Implement Heading Detection (Font size & weight analysis). (Implemented probabilistic scoring).
+    - [x] Implement Reading Order (XY-Cut algorithm).
+    - [x] Implement Footnote/Citation detection baseline.
+- [x] Создать `claude_skill/conversion/detectors/reading_order.py` (алгоритмы порядка чтения)
+- [x] Создать `claude_skill/conversion/detectors/heading_detector.py` (определение заголовков)
+- [x] Создать `claude_skill/conversion/pdf_analyzer.py` (анализ PDF и генерация конфига)
+- [x] Протестировать автоматический анализ структуры PDF.
 
 ## Фаза 5: Конвертация (Conversion)
 - [ ] Создать `claude_skill/conversion/strategies/base_strategy.py` (базовый класс стратегий)

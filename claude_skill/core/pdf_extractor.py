@@ -143,3 +143,69 @@ class PDFExtractor:
     @property
     def page_count(self) -> int:
         return len(self.doc) if self.doc else 0
+
+    def get_structural_blocks(self) -> List['TextBlock']:
+        """
+        Extracts blocks with detailed font information for structure analysis.
+        Uses 'dict' output from PyMuPDF.
+        """
+        from claude_skill.analysis.models import TextBlock
+        
+        if not self.doc:
+            raise RuntimeError("Document is not open.")
+            
+        all_blocks = []
+        
+        for page_num, page in enumerate(self.doc):
+            # "dict" format gives structure: block -> lines -> spans -> chars
+            # flags decoding: 2^0=unused, 2^1=italic, 2^2=serif, 2^3=monospace, 2^4=bold
+            blocks = page.get_text("dict")["blocks"]
+            
+            for b in blocks:
+                if b["type"] != 0: # 0 = Text, 1 = Image
+                    continue
+                    
+                block_text = ""
+                # We need to determine the dominant font properties for the block
+                # Strategy: Take the font of the longest span
+                font_counts = Counter()
+                flag_counts = Counter()
+                
+                # Coordinates
+                x0, y0, x1, y1 = b["bbox"]
+                
+                for line in b["lines"]:
+                    for span in line["spans"]:
+                        text = span["text"]
+                        if not text.strip():
+                            continue
+                        
+                        block_text += text + " "
+                        
+                        # Weight by length
+                        weight = len(text)
+                        font_key = (span["font"], span["size"])
+                        font_counts[font_key] += weight
+                        flag_counts[span["flags"]] += weight
+                
+                if not block_text.strip():
+                    continue
+                    
+                # Find dominant font
+                if font_counts:
+                    dom_font, dom_size = font_counts.most_common(1)[0][0]
+                    dom_flags = flag_counts.most_common(1)[0][0]
+                else:
+                    dom_font, dom_size, dom_flags = "Unknown", 0.0, 0
+                    
+                text_block = TextBlock(
+                    text=block_text.strip(),
+                    page=page_num + 1, # 1-based indexing for humans
+                    x0=x0, y0=y0, x1=x1, y1=y1,
+                    font_name=dom_font,
+                    font_size=dom_size,
+                    flags=dom_flags
+                )
+                all_blocks.append(text_block)
+                
+        return all_blocks
