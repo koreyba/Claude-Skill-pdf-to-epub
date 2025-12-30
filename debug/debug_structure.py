@@ -1,9 +1,9 @@
 from pathlib import Path
 from claude_skill.core.pdf_extractor import PDFExtractor
-from claude_skill.detectors.reading_order.y_sorter import YSorter
-from claude_skill.detectors.font_analyzer import FontAnalyzer
-from claude_skill.detectors.structure_classifier import StructureClassifier
-from claude_skill.detectors.structure_builder import StructureBuilder, Chapter
+from claude_skill.conversion.detectors.reading_order.y_sorter import YSorter
+from claude_skill.conversion.detectors.font_analyzer import FontAnalyzer
+from claude_skill.conversion.detectors.structure_classifier import StructureClassifier
+from claude_skill.conversion.detectors.structure_builder import StructureBuilder, Chapter
 
 def print_chapter(chapter: Chapter, indent=0):
     print("  " * indent + f"[{chapter.level}] {chapter.title} ({len(chapter.content_blocks)} blocks)")
@@ -41,7 +41,7 @@ def debug_structure():
     print(f"Found {h1_count} H1 headers.")
 
     print("--- 4.1 Detecting Footnotes ---")
-    from claude_skill.detectors.footnote_detector import FootnoteDetector
+    from claude_skill.conversion.detectors.footnote_detector import FootnoteDetector
     fn_detector = FootnoteDetector()
     semantic_blocks = fn_detector.process(semantic_blocks)
     

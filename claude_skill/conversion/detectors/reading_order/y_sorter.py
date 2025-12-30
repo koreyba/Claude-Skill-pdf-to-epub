@@ -1,6 +1,6 @@
 from typing import List
-from claude_skill.detectors.models import TextBlock
-from claude_skill.detectors.reading_order.base import BlockSorter
+from claude_skill.conversion.detectors.models import TextBlock
+from claude_skill.conversion.detectors.reading_order.base import BlockSorter
 
 class YSorter(BlockSorter):
     """

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
-from claude_skill.detectors.models import SemanticBlock
+from claude_skill.conversion.detectors.models import SemanticBlock
 from claude_skill.core.utils import get_logger
 
 logger = get_logger(__name__)

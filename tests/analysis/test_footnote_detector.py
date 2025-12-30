@@ -1,5 +1,5 @@
-from claude_skill.detectors.models import SemanticBlock, TextBlock
-from claude_skill.detectors.footnote_detector import FootnoteDetector
+from claude_skill.conversion.detectors.models import SemanticBlock, TextBlock
+from claude_skill.conversion.detectors.footnote_detector import FootnoteDetector
 
 def create_block(text: str, role: str = "body") -> SemanticBlock:
     tb = TextBlock(

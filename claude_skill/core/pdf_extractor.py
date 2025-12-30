@@ -149,7 +149,7 @@ class PDFExtractor:
         Extracts blocks with detailed font information for structure detectors.
         Uses 'dict' output from PyMuPDF.
         """
-        from claude_skill.detectors.models import TextBlock
+        from claude_skill.conversion.detectors.models import TextBlock
         
         if not self.doc:
             raise RuntimeError("Document is not open.")

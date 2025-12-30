@@ -1,6 +1,6 @@
 import pytest
-from claude_skill.detectors.models import TextBlock
-from claude_skill.detectors.structure_classifier import StructureClassifier
+from claude_skill.conversion.detectors.models import TextBlock
+from claude_skill.conversion.detectors.structure_classifier import StructureClassifier
 
 def create_block(text, size=11.0, flags=0, y0=100, x0=50):
     return TextBlock(

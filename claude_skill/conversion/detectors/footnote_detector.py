@@ -1,6 +1,6 @@
 from typing import List, Tuple
 import re
-from claude_skill.detectors.models import SemanticBlock
+from claude_skill.conversion.detectors.models import SemanticBlock
 
 class FootnoteDetector:
     """

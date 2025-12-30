@@ -1,6 +1,6 @@
 from typing import List, Dict
-from claude_skill.detectors.models import TextBlock, SemanticBlock
-from claude_skill.detectors.font_analyzer import FontAnalyzer
+from claude_skill.conversion.detectors.models import TextBlock, SemanticBlock
+from claude_skill.conversion.detectors.font_analyzer import FontAnalyzer
 
 class StructureClassifier:
     """
