@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from claude_skill.analysis.models import TextBlock
+from claude_skill.detectors.models import TextBlock
 
 class BlockSorter(ABC):
     @abstractmethod

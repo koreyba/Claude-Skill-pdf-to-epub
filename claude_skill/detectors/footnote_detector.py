@@ -1,11 +1,11 @@
 from typing import List, Tuple
 import re
-from claude_skill.analysis.models import SemanticBlock
+from claude_skill.detectors.models import SemanticBlock
 
 class FootnoteDetector:
     """
     Detects footnote references in text blocks.
-    Currently uses Regex patterns. Future improvement: use span position analysis.
+    Currently uses Regex patterns. Future improvement: use span position detectors.
     """
     
     # Matches [1], [12], (1), (12)

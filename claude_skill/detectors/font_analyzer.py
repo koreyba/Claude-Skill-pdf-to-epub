@@ -1,6 +1,6 @@
 from typing import List, Dict, Tuple
 from collections import defaultdict
-from claude_skill.analysis.models import TextBlock
+from claude_skill.detectors.models import TextBlock
 from claude_skill.core.utils import get_logger
 
 logger = get_logger(__name__)

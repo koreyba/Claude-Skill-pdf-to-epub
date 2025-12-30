@@ -1,6 +1,6 @@
 from typing import List, Tuple
-from claude_skill.analysis.models import TextBlock
-from claude_skill.analysis.sorters.base import BlockSorter
+from claude_skill.detectors.models import TextBlock
+from claude_skill.detectors.reading_order.base import BlockSorter
 
 class XYCutSorter(BlockSorter):
     """

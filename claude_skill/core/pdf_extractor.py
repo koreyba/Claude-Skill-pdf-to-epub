@@ -146,10 +146,10 @@ class PDFExtractor:
 
     def get_structural_blocks(self) -> List['TextBlock']:
         """
-        Extracts blocks with detailed font information for structure analysis.
+        Extracts blocks with detailed font information for structure detectors.
         Uses 'dict' output from PyMuPDF.
         """
-        from claude_skill.analysis.models import TextBlock
+        from claude_skill.detectors.models import TextBlock
         
         if not self.doc:
             raise RuntimeError("Document is not open.")
