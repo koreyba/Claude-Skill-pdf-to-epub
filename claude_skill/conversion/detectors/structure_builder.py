@@ -19,28 +19,41 @@ class StructureBuilder:
     """
     Converts a flat list of SemanticBlocks into a hierarchical Chapter tree.
     """
-    
+
     def build_chapters(self, blocks: List[SemanticBlock]) -> List[Chapter]:
-        # 0. Preprocessing: Merge consecutive headers of same level
-        merged_blocks = self._merge_headers(blocks)
-        
+        # 0. Separate endnotes from main content
+        main_blocks = []
+        endnote_blocks = []
+
+        for block in blocks:
+            if block.role == "endnote":
+                endnote_blocks.append(block)
+            else:
+                main_blocks.append(block)
+
+        if endnote_blocks:
+            logger.info(f"Found {len(endnote_blocks)} endnote blocks")
+
+        # 1. Preprocessing: Merge consecutive headers of same level
+        merged_blocks = self._merge_headers(main_blocks)
+
         root_chapters = []
-        current_stack = [] # Stack of active chapters [H1, H2, ...]
-        
+        current_stack = []  # Stack of active chapters [H1, H2, ...]
+
         # Create a default introductory chapter for content before the first H1
         preamble = Chapter(title="Intro", level=0)
         current_stack.append(preamble)
         root_chapters.append(preamble)
-        
+
         for block in merged_blocks:
             role = block.role
-            
+
             if role.startswith("h") and role[1:].isdigit():
                 level = int(role[1:])
                 # Found a header! Start a new chapter.
                 title = block.original_block.text.strip()
                 new_chapter = Chapter(title=title, level=level, content_blocks=[block])
-                
+
                 # Logic to place this chapter in the tree
                 # Pop stack until we find a parent with level < current level
                 # Special case: H1 always goes to root (never nested under Intro)
@@ -51,7 +64,7 @@ class StructureBuilder:
                     # Pop stack until we find a parent with level < current level
                     while current_stack and current_stack[-1].level >= level:
                         current_stack.pop()
-                    
+
                 if not current_stack:
                     # Top level chapter (or strictly > previous top)
                     root_chapters.append(new_chapter)
@@ -59,10 +72,10 @@ class StructureBuilder:
                     # Add as subchapter to current parent
                     parent = current_stack[-1]
                     parent.subchapters.append(new_chapter)
-                
+
                 # Make this the active chapter
                 current_stack.append(new_chapter)
-                
+
             else:
                 # Regular content (body, list, etc.)
                 # Add to the currently active chapter (tip of stack)
@@ -71,11 +84,21 @@ class StructureBuilder:
                 else:
                     # Should not happen due to preamble, but safety check
                     pass
-                    
+
         # Cleanup: Remove preamble if empty and there are other chapters, or if it's the only one and empty
         if root_chapters and root_chapters[0].title == "Intro" and not root_chapters[0].content_blocks and not root_chapters[0].subchapters:
             root_chapters.pop(0)
-            
+
+        # 2. Add endnotes chapter if we have endnotes
+        if endnote_blocks:
+            endnotes_chapter = Chapter(
+                title="Endnotes",
+                level=1,
+                content_blocks=endnote_blocks
+            )
+            root_chapters.append(endnotes_chapter)
+            logger.info(f"Created Endnotes chapter with {len(endnote_blocks)} notes")
+
         return root_chapters
 
     def _merge_headers(self, blocks: List[SemanticBlock]) -> List[SemanticBlock]:

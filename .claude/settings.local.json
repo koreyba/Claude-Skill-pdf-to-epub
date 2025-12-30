@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest:*)",
+      "Bash(.venvScriptspython.exe -m pytest tests/integration/test_full_conversion.py -v)",
+      "Bash(powershell.exe -Command \"cd ''c:\\\\Projects\\\\Pdf-to-epub-skill''; .\\\\.venv\\\\Scripts\\\\python.exe -m pytest tests/integration/test_full_conversion.py -v 2>&1\")",
+      "Bash(powershell.exe -Command:*)"
+    ]
+  }
+}

@@ -1,6 +1,10 @@
+import re
 from typing import List, Dict
 from claude_skill.conversion.detectors.models import TextBlock, SemanticBlock
 from claude_skill.conversion.detectors.font_analyzer import FontAnalyzer
+
+# Pattern for endnotes: digit(s) followed by 2+ spaces at start
+ENDNOTE_PATTERN = re.compile(r'^(\d{1,2})\s{2,}')
 
 class StructureClassifier:
     """
@@ -60,6 +64,11 @@ class StructureClassifier:
             # List item check (post-processing)
             if role == "body" and self._is_list_item(block.text.strip()):
                  role = "list-item"
+
+            # Endnote check - format: "1  More technically..." with smaller font
+            endnote_num = self._is_endnote(block, body_size)
+            if endnote_num is not None and role == "body":
+                role = "endnote"
 
             sb = SemanticBlock(
                 original_block=block,
@@ -145,7 +154,21 @@ class StructureClassifier:
         if text.startswith("•") or text.startswith("- "):
             return True
         # Check "1. ", "2. ", "10. ", etc.
-        import re
         if re.match(r'^\d+\.\s', text):
             return True
         return False
+
+    def _is_endnote(self, text: str) -> int | None:
+        """
+        Check if text is an endnote. Endnotes start with a number followed by 2+ spaces.
+        Format: "1  More technically, theories and paradigms tetra-enact..."
+
+        Returns the endnote number if detected, None otherwise.
+        """
+        match = ENDNOTE_PATTERN.match(text)
+        if match:
+            num = int(match.group(1))
+            # Reasonable endnote numbers (1-99)
+            if 1 <= num <= 99:
+                return num
+        return None

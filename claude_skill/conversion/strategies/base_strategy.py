@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 # Import types that will be defined in models.py
 # For now, we'll use forward references
@@ -24,7 +24,7 @@ class BaseStrategy(ABC):
     in a specific order: extract → order_blocks → detect_structure.
     """
     
-    def convert(self, pdf_path: Path, config: 'ConversionConfig') -> 'StructuredContent':
+    def convert(self, pdf_path: Union[str, Path], config: 'ConversionConfig') -> 'StructuredContent':
         """
         Template method that orchestrates the conversion workflow.
         
@@ -37,7 +37,7 @@ class BaseStrategy(ABC):
         3. Detect document structure (chapters, headings)
         
         Args:
-            pdf_path: Path to the input PDF file
+            pdf_path: Path to the input PDF file (str or Path)
             config: Conversion configuration
             
         Returns:
@@ -47,7 +47,8 @@ class BaseStrategy(ABC):
             ValueError: If config is invalid
             FileNotFoundError: If PDF does not exist
         """
-        # Validate inputs
+        # Convert to Path and validate
+        pdf_path = Path(pdf_path)
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF file not found: {pdf_path}")
         

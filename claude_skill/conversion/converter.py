@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 from dataclasses import asdict
 
 from claude_skill.conversion.strategies import BaseStrategy, SimpleStrategy
@@ -71,8 +71,8 @@ class Converter:
     
     def convert(
         self,
-        pdf_path: Path,
-        output_path: Path,
+        pdf_path: Union[str, Path],
+        output_path: Union[str, Path],
         config: Optional[ConversionConfig] = None,
         config_path: Optional[Path] = None
     ) -> ConversionResult:
@@ -80,14 +80,17 @@ class Converter:
         Convert PDF to EPUB.
         
         Args:
-            pdf_path: Path to input PDF file
-            output_path: Path for output EPUB file
+            pdf_path: Path to input PDF file (str or Path)
+            output_path: Path for output EPUB file (str or Path)
             config: Conversion configuration (or None for defaults)
             config_path: Path to JSON config file (alternative to config param)
             
         Returns:
             ConversionResult with status, EPUB path, and log
         """
+        # Convert to Path objects
+        pdf_path = Path(pdf_path)
+        output_path = Path(output_path)
         # Initialize log
         log = ConversionLog(
             timestamp=datetime.now(),

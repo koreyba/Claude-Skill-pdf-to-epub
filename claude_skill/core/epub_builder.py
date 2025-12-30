@@ -5,7 +5,7 @@ import shutil
 import zipfile
 import uuid
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from lxml import etree
 
 from claude_skill.conversion.models import StructuredContent
@@ -111,15 +111,17 @@ class EPUBBuilder:
         """Generate XHTML content for a chapter."""
         # Escape HTML entities
         title = self._escape_html(chapter.title)
-        
+
         # Support both Chapter types: models.Chapter (has content field) and structure_builder.Chapter (has get_text method)
         if hasattr(chapter, 'get_text'):
-            content = self._escape_html(chapter.get_text())
+            # Plain text - need to wrap in <p> tags
+            raw_text = chapter.get_text()
+            content = self._text_to_html(raw_text)
         elif hasattr(chapter, 'content'):
             content = chapter.content  # Already HTML from tests
         else:
             content = ""
-        
+
         xhtml = f'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en">
@@ -135,8 +137,27 @@ class EPUBBuilder:
   </section>
 </body>
 </html>'''
-        
+
         return xhtml
+
+    def _text_to_html(self, text: str) -> str:
+        """Convert plain text to HTML with proper paragraph tags."""
+        if not text:
+            return ""
+
+        # Split by double newlines (paragraph breaks)
+        paragraphs = text.split('\n\n')
+
+        html_parts = []
+        for para in paragraphs:
+            # Clean up single newlines within paragraph
+            para = para.replace('\n', ' ').strip()
+            if para:
+                # Escape HTML and wrap in <p>
+                escaped = self._escape_html(para)
+                html_parts.append(f'    <p>{escaped}</p>')
+
+        return '\n'.join(html_parts)
     
     def _write_stylesheet(self, temp_path: Path):
         """Write basic CSS stylesheet."""
@@ -169,7 +190,7 @@ img {
     def _write_content_opf(self, temp_path: Path, content: StructuredContent):
         """Write OEBPS/content.opf (package document)."""
         book_id = str(uuid.uuid4())
-        timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         
         metadata = content.metadata
         
