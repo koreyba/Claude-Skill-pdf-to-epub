@@ -125,7 +125,7 @@ class TestBookMetadata:
 
 class TestImageResource:
     """Test ImageResource dataclass."""
-    
+
     def test_valid_image(self):
         """ImageResource accepts valid image data."""
         img = ImageResource(
@@ -139,6 +139,21 @@ class TestImageResource:
         )
         assert img.id == "img-1"
         assert img.width == 640
+
+    def test_from_dict(self):
+        """ImageResource.from_dict creates instance from dictionary."""
+        data = {
+            'id': 'img-2',
+            'filename': 'test.jpg',
+            'data': b'data',
+            'format': 'jpeg',
+            'width': 800,
+            'height': 600,
+            'page_num': 2
+        }
+        img = ImageResource.from_dict(data)
+        assert img.id == 'img-2'
+        assert img.format == 'jpeg'
     
     def test_rejects_invalid_format(self):
         """ImageResource rejects unsupported formats."""
@@ -183,9 +198,29 @@ class TestImageResource:
         assert len(str(data['data'])) < 100  # Shortened representation
 
 
+class TestFootnote:
+    """Test Footnote dataclass."""
+
+    def test_to_dict(self):
+        """Footnote.to_dict() serializes correctly."""
+        fn = Footnote(marker="1", id="fn-1", text="This is a note")
+        data = fn.to_dict()
+        assert data['marker'] == "1"
+        assert data['id'] == "fn-1"
+        assert data['text'] == "This is a note"
+
+    def test_from_dict(self):
+        """Footnote.from_dict() creates instance from dictionary."""
+        data = {'marker': '2', 'id': 'fn-2', 'text': 'Another note'}
+        fn = Footnote.from_dict(data)
+        assert fn.marker == '2'
+        assert fn.id == 'fn-2'
+        assert fn.text == 'Another note'
+
+
 class TestChapter:
     """Test Chapter dataclass."""
-    
+
     def test_valid_chapter(self):
         """Chapter accepts valid data."""
         ch = Chapter(
@@ -196,7 +231,7 @@ class TestChapter:
         )
         assert ch.title == "Chapter 1"
         assert ch.level == 1
-    
+
     def test_rejects_invalid_level(self):
         """Chapter level must be 1-3."""
         with pytest.raises(ValueError, match="level must be 1-3"):
@@ -221,26 +256,26 @@ class TestChapter:
 
 class TestStructuredContent:
     """Test StructuredContent dataclass."""
-    
+
     def test_valid_content(self):
         """StructuredContent accepts valid data."""
         meta = BookMetadata(title="Book", author="Author", language="en")
         ch = Chapter(title="Ch1", level=1, content="<p>text</p>", footnotes=[])
-        
+
         content = StructuredContent(
             chapters=[ch],
             metadata=meta,
             reading_order_confidence=0.95,
             images=[]
         )
-        
+
         assert len(content.chapters) == 1
         assert content.reading_order_confidence == 0.95
-    
+
     def test_rejects_invalid_confidence(self):
         """StructuredContent confidence must be 0.0-1.0."""
         meta = BookMetadata(title="Book", author="Author", language="en")
-        
+
         with pytest.raises(ValueError, match="Confidence must be 0.0-1.0"):
             StructuredContent(
                 chapters=[],
@@ -248,6 +283,47 @@ class TestStructuredContent:
                 reading_order_confidence=1.5,
                 images=[]
             )
+
+    def test_to_dict(self):
+        """StructuredContent.to_dict() serializes all fields."""
+        meta = BookMetadata(title="Book", author="Author", language="en")
+        ch = Chapter(title="Ch1", level=1, content="<p>text</p>", footnotes=[])
+        img = ImageResource(
+            id="img-1", filename="test.png", data=b"data",
+            format="png", width=100, height=100, page_num=1
+        )
+
+        content = StructuredContent(
+            chapters=[ch],
+            metadata=meta,
+            reading_order_confidence=0.85,
+            images=[img]
+        )
+
+        data = content.to_dict()
+        assert data['reading_order_confidence'] == 0.85
+        assert len(data['chapters']) == 1
+        assert data['metadata']['title'] == "Book"
+
+    def test_from_dict(self):
+        """StructuredContent.from_dict() creates instance from dictionary."""
+        data = {
+            'chapters': [
+                {'title': 'Ch1', 'level': 1, 'content': '<p>text</p>', 'footnotes': []}
+            ],
+            'metadata': {'title': 'Book', 'author': 'Author', 'language': 'en'},
+            'reading_order_confidence': 0.9,
+            'images': [
+                {'id': 'img-1', 'filename': 'test.png', 'data': b'data',
+                 'format': 'png', 'width': 100, 'height': 100, 'page_num': 1}
+            ]
+        }
+
+        content = StructuredContent.from_dict(data)
+        assert len(content.chapters) == 1
+        assert content.chapters[0].title == 'Ch1'
+        assert content.metadata.title == 'Book'
+        assert len(content.images) == 1
 
 
 class TestConversionResult:
@@ -294,15 +370,143 @@ class TestConversionResult:
             strategy_used="simple",
             config={}
         )
-        
+
         result = ConversionResult(
             epub_path=None,
             status="failed",
             reading_order_confidence=0.0,
             log=log
         )
-        
+
         assert result.epub_path is None
+
+    def test_rejects_invalid_confidence(self):
+        """ConversionResult rejects confidence outside 0.0-1.0."""
+        log = ConversionLog(
+            timestamp=datetime.now(),
+            strategy_used="simple",
+            config={}
+        )
+
+        with pytest.raises(ValueError, match="Confidence must be 0.0-1.0"):
+            ConversionResult(
+                epub_path=Path("out.epub"),
+                status="success",
+                reading_order_confidence=1.5,
+                log=log
+            )
+
+    def test_to_dict(self):
+        """ConversionResult.to_dict() serializes all fields."""
+        log = ConversionLog(
+            timestamp=datetime.now(),
+            strategy_used="simple",
+            config={'key': 'value'}
+        )
+
+        result = ConversionResult(
+            epub_path=Path("output.epub"),
+            status="success",
+            reading_order_confidence=0.9,
+            log=log
+        )
+
+        data = result.to_dict()
+        assert data['epub_path'] == "output.epub"
+        assert data['status'] == "success"
+        assert data['reading_order_confidence'] == 0.9
+
+    def test_to_dict_with_none_path(self):
+        """ConversionResult.to_dict() handles None epub_path."""
+        log = ConversionLog(
+            timestamp=datetime.now(),
+            strategy_used="simple",
+            config={}
+        )
+
+        result = ConversionResult(
+            epub_path=None,
+            status="failed",
+            reading_order_confidence=0.0,
+            log=log
+        )
+
+        data = result.to_dict()
+        assert data['epub_path'] is None
+
+    def test_from_dict(self):
+        """ConversionResult.from_dict() creates instance from dictionary."""
+        data = {
+            'epub_path': 'output.epub',
+            'status': 'success',
+            'reading_order_confidence': 0.85,
+            'log': {
+                'timestamp': '2025-01-01T12:00:00',
+                'strategy_used': 'simple',
+                'config': {},
+                'steps_completed': ['step1'],
+                'warnings': [],
+                'errors': []
+            },
+            'structured_content': None,
+            'metadata': None
+        }
+
+        result = ConversionResult.from_dict(data)
+        assert result.epub_path == Path('output.epub')
+        assert result.status == 'success'
+        assert result.log.strategy_used == 'simple'
+
+
+class TestConversionLog:
+    """Test ConversionLog dataclass."""
+
+    def test_to_dict(self):
+        """ConversionLog.to_dict() serializes with ISO timestamp."""
+        ts = datetime(2025, 1, 15, 10, 30, 0)
+        log = ConversionLog(
+            timestamp=ts,
+            strategy_used="simple",
+            config={'pages': [1, 10]},
+            steps_completed=['extract', 'structure'],
+            warnings=['Low confidence'],
+            errors=[]
+        )
+
+        data = log.to_dict()
+        assert data['timestamp'] == '2025-01-15T10:30:00'
+        assert data['strategy_used'] == 'simple'
+        assert data['steps_completed'] == ['extract', 'structure']
+
+    def test_from_dict(self):
+        """ConversionLog.from_dict() parses ISO timestamp."""
+        data = {
+            'timestamp': '2025-01-15T10:30:00',
+            'strategy_used': 'simple',
+            'config': {},
+            'steps_completed': [],
+            'warnings': [],
+            'errors': []
+        }
+
+        log = ConversionLog.from_dict(data)
+        assert log.timestamp == datetime(2025, 1, 15, 10, 30, 0)
+        assert log.strategy_used == 'simple'
+
+    def test_from_dict_with_datetime(self):
+        """ConversionLog.from_dict() accepts datetime object."""
+        ts = datetime(2025, 1, 15, 10, 30, 0)
+        data = {
+            'timestamp': ts,
+            'strategy_used': 'simple',
+            'config': {},
+            'steps_completed': [],
+            'warnings': [],
+            'errors': []
+        }
+
+        log = ConversionLog.from_dict(data)
+        assert log.timestamp == ts
 
 
 class TestConversionConfig:

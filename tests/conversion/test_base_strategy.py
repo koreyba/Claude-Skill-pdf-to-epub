@@ -171,11 +171,11 @@ class TestBaseStrategyTemplateMethod:
 
 class TestBaseStrategyValidateConfig:
     """Test configuration validation."""
-    
+
     def test_validate_config_accepts_valid_config(self):
         """_validate_config() accepts valid configuration."""
         strategy = MockStrategy()
-        
+
         config = ConversionConfig(
             page_ranges=PageRanges(),
             exclude_regions=ExcludeRegions(),
@@ -185,6 +185,13 @@ class TestBaseStrategyValidateConfig:
             footnote_processing=FootnoteConfig(),
             metadata=BookMetadata(title=None, author=None, language="en")
         )
-        
+
         # Should not raise
         strategy._validate_config(config)
+
+    def test_validate_config_rejects_none(self):
+        """_validate_config() raises ValueError for None config."""
+        strategy = MockStrategy()
+
+        with pytest.raises(ValueError, match="Configuration cannot be None"):
+            strategy._validate_config(None)

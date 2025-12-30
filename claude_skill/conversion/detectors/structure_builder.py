@@ -13,7 +13,59 @@ class Chapter:
     subchapters: List['Chapter'] = field(default_factory=list)
     
     def get_text(self) -> str:
-        return "\n\n".join(b.original_block.text for b in self.content_blocks)
+        """Get all text from this chapter including subchapters."""
+        # Merge blocks intelligently - join continuation blocks with space
+        merged_parts = []
+        current_paragraph = ""
+
+        for block in self.content_blocks:
+            text = block.original_block.text.strip()
+            if not text:
+                continue
+
+            if not current_paragraph:
+                # Start new paragraph
+                current_paragraph = text
+            elif self._is_continuation(current_paragraph, text):
+                # Continue current paragraph (join with space)
+                current_paragraph += " " + text
+            else:
+                # Start new paragraph
+                merged_parts.append(current_paragraph)
+                current_paragraph = text
+
+        # Don't forget the last paragraph
+        if current_paragraph:
+            merged_parts.append(current_paragraph)
+
+        # Include text from subchapters recursively
+        for sub in self.subchapters:
+            sub_text = sub.get_text()
+            if sub_text:
+                merged_parts.append(sub_text)
+
+        return "\n\n".join(merged_parts)
+
+    def _is_continuation(self, prev_text: str, curr_text: str) -> bool:
+        """Check if curr_text is a continuation of prev_text (same paragraph)."""
+        if not prev_text or not curr_text:
+            return False
+
+        # If previous doesn't end with sentence-ending punctuation
+        # AND current starts with lowercase - it's a continuation
+        prev_ends_sentence = prev_text.rstrip()[-1] in '.!?:;'
+        curr_starts_lower = curr_text[0].islower()
+
+        # Also check for mid-word breaks (previous ends with hyphen)
+        prev_ends_hyphen = prev_text.rstrip().endswith('-')
+
+        if prev_ends_hyphen:
+            return True
+
+        if not prev_ends_sentence and curr_starts_lower:
+            return True
+
+        return False
 
 class StructureBuilder:
     """

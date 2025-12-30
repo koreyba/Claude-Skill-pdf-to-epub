@@ -158,17 +158,28 @@ class StructureClassifier:
             return True
         return False
 
-    def _is_endnote(self, text: str) -> int | None:
+    def _is_endnote(self, block: TextBlock, body_size: float) -> int | None:
         """
-        Check if text is an endnote. Endnotes start with a number followed by 2+ spaces.
+        Check if block is an endnote. Endnotes typically:
+        1. Start with a number followed by 2+ spaces
+        2. Have font size smaller than or equal to body text
+
         Format: "1  More technically, theories and paradigms tetra-enact..."
+
+        Args:
+            block: The TextBlock to check
+            body_size: The body font size for comparison
 
         Returns the endnote number if detected, None otherwise.
         """
+        text = block.text.strip()
         match = ENDNOTE_PATTERN.match(text)
         if match:
             num = int(match.group(1))
             # Reasonable endnote numbers (1-99)
             if 1 <= num <= 99:
-                return num
+                # Endnotes typically have same or smaller font than body
+                # Allow small tolerance (endnotes shouldn't be much larger than body)
+                if block.font_size <= body_size + 0.5:
+                    return num
         return None
