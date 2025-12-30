@@ -74,7 +74,8 @@ class StructureClassifier:
                 original_block=block,
                 role=role,
                 score=score,
-                debug_signals=signals
+                debug_signals=signals,
+                endnote_num=endnote_num  # Store parsed endnote number
             )
             semantic_blocks.append(sb)
             

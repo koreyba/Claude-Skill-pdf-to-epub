@@ -10,6 +10,7 @@ from claude_skill.conversion.models import (
     ImageResource,
     BookMetadata,
     Chapter,
+    ImageOptimizationConfig,
 )
 from claude_skill.core.pdf_extractor import PDFExtractor
 from claude_skill.conversion.detectors.models import TextBlock
@@ -43,13 +44,17 @@ class SimpleStrategy(BaseStrategy):
         # Step 1: Extract text blocks using PDFExtractor
         with PDFExtractor(pdf_path) as extractor:
             blocks = extractor.get_structural_blocks()
-        
+
         # Step 2: Extract images from PDF
         images = self._extract_images(pdf_path)
-        
-        # Step 3: Extract metadata from PDF
+
+        # Step 3: Optimize images if enabled
+        if hasattr(config, 'image_optimization') and config.image_optimization.enabled:
+            images = self._optimize_images(images, config.image_optimization)
+
+        # Step 4: Extract metadata from PDF
         metadata = self._extract_metadata(pdf_path, config)
-        
+
         return blocks, images, metadata
     
     def _extract_images(self, pdf_path: Path) -> List[ImageResource]:
@@ -94,7 +99,37 @@ class SimpleStrategy(BaseStrategy):
             doc.close()
         
         return images
-    
+
+    def _optimize_images(
+        self,
+        images: List[ImageResource],
+        config: ImageOptimizationConfig
+    ) -> List[ImageResource]:
+        """
+        Optimize extracted images for EPUB.
+
+        Args:
+            images: List of ImageResource objects
+            config: Image optimization configuration
+
+        Returns:
+            List of optimized ImageResource objects
+        """
+        from claude_skill.core.image_optimizer import (
+            ImageOptimizer,
+            ImageOptimizationConfig as OptConfig
+        )
+
+        opt_config = OptConfig(
+            max_width=config.max_width,
+            max_height=config.max_height,
+            jpeg_quality=config.jpeg_quality,
+            convert_png_to_jpeg=config.convert_png_to_jpeg
+        )
+
+        optimizer = ImageOptimizer(opt_config)
+        return optimizer.optimize_batch(images)
+
     def _extract_metadata(self, pdf_path: Path, config) -> BookMetadata:
         """
         Extract metadata from PDF info dict.

@@ -15,15 +15,21 @@ def test_detect_bracket_refs():
         create_block("Another one [12] with text."),
         create_block("No reference here."),
     ]
-    
+
     processed = detector.process(blocks)
-    
+
     assert "footnote_refs" in processed[0].metadata
-    assert processed[0].metadata["footnote_refs"] == ["[1]"]
-    
+    refs_0 = processed[0].metadata["footnote_refs"]
+    assert len(refs_0) == 1
+    assert refs_0[0]["num"] == 1
+    assert refs_0[0]["text"] == "[1]"
+
     assert "footnote_refs" in processed[1].metadata
-    assert processed[1].metadata["footnote_refs"] == ["[12]"]
-    
+    refs_1 = processed[1].metadata["footnote_refs"]
+    assert len(refs_1) == 1
+    assert refs_1[0]["num"] == 12
+    assert refs_1[0]["text"] == "[12]"
+
     assert "footnote_refs" not in processed[2].metadata
 
 def test_detect_parenthesis_refs():
@@ -31,9 +37,14 @@ def test_detect_parenthesis_refs():
     blocks = [
         create_block("Statement (1) and (2)."),
     ]
-    
+
     processed = detector.process(blocks)
-    assert processed[0].metadata["footnote_refs"] == ["(1)", "(2)"]
+    refs = processed[0].metadata["footnote_refs"]
+    assert len(refs) == 2
+    assert refs[0]["num"] == 1
+    assert refs[0]["text"] == "(1)"
+    assert refs[1]["num"] == 2
+    assert refs[1]["text"] == "(2)"
 
 def test_ignore_headers():
     detector = FootnoteDetector()

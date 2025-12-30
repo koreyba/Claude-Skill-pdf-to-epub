@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from lxml import etree
 
 from claude_skill.conversion.models import StructuredContent
+from claude_skill.conversion.detectors.footnote_detector import FootnoteDetector
+from claude_skill.conversion.detectors.endnote_formatter import EndnoteFormatter
 
 
 class EPUBBuilder:
@@ -102,25 +104,40 @@ class EPUBBuilder:
     
     def _write_chapters(self, temp_path: Path, chapters):
         """Write chapter XHTML files."""
+        # Find endnotes chapter to get its filename for hyperlinks
+        endnotes_filename = None
+        for i, chapter in enumerate(chapters, start=1):
+            if hasattr(chapter, 'is_endnotes') and chapter.is_endnotes:
+                endnotes_filename = f"chapter{i}.xhtml"
+                break
+
         for i, chapter in enumerate(chapters, start=1):
             chapter_path = temp_path / "OEBPS" / f"chapter{i}.xhtml"
-            chapter_html = self._generate_chapter_xhtml(chapter, i)
+            chapter_html = self._generate_chapter_xhtml(chapter, i, endnotes_filename)
             chapter_path.write_text(chapter_html, encoding="utf-8")
     
-    def _generate_chapter_xhtml(self, chapter, chapter_num: int) -> str:
+    def _generate_chapter_xhtml(self, chapter, chapter_num: int, endnotes_filename: str = None) -> str:
         """Generate XHTML content for a chapter."""
         # Escape HTML entities
         title = self._escape_html(chapter.title)
 
-        # Support both Chapter types: models.Chapter (has content field) and structure_builder.Chapter (has get_text method)
-        if hasattr(chapter, 'get_text'):
-            # Plain text - need to wrap in <p> tags
+        # Check if this is the endnotes chapter
+        is_endnotes = hasattr(chapter, 'is_endnotes') and chapter.is_endnotes
+
+        if is_endnotes:
+            # Use EndnoteFormatter for endnotes chapter
+            content = self._generate_endnotes_content(chapter)
+        elif hasattr(chapter, 'get_text'):
+            # Plain text - need to wrap in <p> tags with footnote hyperlinks
             raw_text = chapter.get_text()
-            content = self._text_to_html(raw_text)
+            content = self._text_to_html_with_footnotes(raw_text, endnotes_filename)
         elif hasattr(chapter, 'content'):
             content = chapter.content  # Already HTML from tests
         else:
             content = ""
+
+        # Set epub:type based on chapter type
+        epub_type = "endnotes" if is_endnotes else "chapter"
 
         xhtml = f'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
@@ -131,7 +148,7 @@ class EPUBBuilder:
   <link rel="stylesheet" href="stylesheet.css"/>
 </head>
 <body>
-  <section epub:type="chapter" id="chapter{chapter_num}">
+  <section epub:type="{epub_type}" id="chapter{chapter_num}">
     <h1>{title}</h1>
     {content}
   </section>
@@ -139,6 +156,39 @@ class EPUBBuilder:
 </html>'''
 
         return xhtml
+
+    def _generate_endnotes_content(self, chapter) -> str:
+        """Generate HTML content for endnotes chapter using EndnoteFormatter."""
+        if not hasattr(chapter, 'content_blocks'):
+            return ""
+
+        formatter = EndnoteFormatter()
+        return formatter.format_endnotes(chapter.content_blocks)
+
+    def _text_to_html_with_footnotes(self, text: str, endnotes_filename: str = None) -> str:
+        """Convert plain text to HTML with paragraph tags and footnote hyperlinks."""
+        if not text:
+            return ""
+
+        # Split by double newlines (paragraph breaks)
+        paragraphs = text.split('\n\n')
+
+        # Create footnote detector for hyperlink conversion
+        detector = FootnoteDetector() if endnotes_filename else None
+
+        html_parts = []
+        for para in paragraphs:
+            # Clean up single newlines within paragraph
+            para = para.replace('\n', ' ').strip()
+            if para:
+                # Escape HTML first
+                escaped = self._escape_html(para)
+                # Then convert footnote references to hyperlinks
+                if detector and endnotes_filename:
+                    escaped = detector.convert_to_hyperlinks(escaped, endnotes_filename)
+                html_parts.append(f'    <p>{escaped}</p>')
+
+        return '\n'.join(html_parts)
 
     def _text_to_html(self, text: str) -> str:
         """Convert plain text to HTML with proper paragraph tags."""
@@ -181,6 +231,35 @@ p {
 img {
     max-width: 100%;
     height: auto;
+}
+
+/* Footnote reference links in main text */
+.footnote-ref {
+    text-decoration: none;
+    color: #0066cc;
+}
+
+.footnote-ref sup {
+    font-size: 0.8em;
+    vertical-align: super;
+}
+
+/* Endnotes section */
+.endnote {
+    margin: 0.8em 0;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+.endnote-num {
+    font-weight: bold;
+    color: #333;
+}
+
+.endnote-backlink {
+    text-decoration: none;
+    color: #0066cc;
+    font-size: 0.85em;
 }
 '''
         

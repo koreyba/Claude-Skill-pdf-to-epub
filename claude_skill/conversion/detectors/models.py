@@ -22,11 +22,12 @@ class SemanticBlock:
     Enriched block with structural role.
     """
     original_block: TextBlock
-    role: str = "paragraph" # h1, h2, footnote, etc.
+    role: str = "paragraph"  # h1, h2, footnote, endnote, etc.
     confidence: float = 1.0
-    id: Optional[str] = None # e.g. "chapter-1"
+    id: Optional[str] = None  # e.g. "chapter-1"
     metadata: Dict = field(default_factory=dict)
-    
+    endnote_num: Optional[int] = None  # Parsed endnote number (e.g., 1, 2, 3)
+
     # Heuristic Debugging
     score: float = 0.0
     debug_signals: list = field(default_factory=list)

@@ -41,6 +41,18 @@ class HeadingConfig:
 class FootnoteConfig:
     """Footnote processing configuration."""
     enabled: bool = False
+    patterns: List[str] = field(default_factory=lambda: ['bracket', 'paren'])
+    generate_backlinks: bool = True
+
+
+@dataclass
+class ImageOptimizationConfig:
+    """Image optimization configuration."""
+    enabled: bool = True
+    max_width: int = 1200
+    max_height: int = 1600
+    jpeg_quality: int = 85
+    convert_png_to_jpeg: bool = False
 
 
 @dataclass
@@ -306,7 +318,7 @@ class ConversionResult:
 class ConversionConfig:
     """
     Configuration for PDF to EPUB conversion.
-    
+
     Attributes:
         page_ranges: Page range configuration
         exclude_regions: Region exclusion configuration
@@ -315,6 +327,7 @@ class ConversionConfig:
         heading_detection: Heading detection configuration
         footnote_processing: Footnote processing configuration
         metadata: Book metadata
+        image_optimization: Image optimization configuration
     """
     page_ranges: PageRanges
     exclude_regions: ExcludeRegions
@@ -323,6 +336,7 @@ class ConversionConfig:
     heading_detection: HeadingConfig
     footnote_processing: FootnoteConfig
     metadata: BookMetadata
+    image_optimization: ImageOptimizationConfig = field(default_factory=ImageOptimizationConfig)
     
     def __post_init__(self):
         """Validate configuration."""
@@ -348,6 +362,8 @@ class ConversionConfig:
         data['heading_detection'] = HeadingConfig(**data['heading_detection'])
         data['footnote_processing'] = FootnoteConfig(**data['footnote_processing'])
         data['metadata'] = BookMetadata.from_dict(data['metadata'])
+        if 'image_optimization' in data:
+            data['image_optimization'] = ImageOptimizationConfig(**data['image_optimization'])
         return cls(**data)
 
 
@@ -358,6 +374,7 @@ __all__ = [
     'MultiColumnConfig',
     'HeadingConfig',
     'FootnoteConfig',
+    'ImageOptimizationConfig',
     'BookMetadata',
     'ImageResource',
     'Footnote',

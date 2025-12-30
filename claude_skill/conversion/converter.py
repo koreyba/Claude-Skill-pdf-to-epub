@@ -17,6 +17,7 @@ from claude_skill.conversion.models import (
     MultiColumnConfig,
     HeadingConfig,
     FootnoteConfig,
+    ImageOptimizationConfig,
 )
 from claude_skill.core.epub_builder import EPUBBuilder
 
@@ -37,6 +38,7 @@ DEFAULT_CONFIG = ConversionConfig(
     heading_detection=HeadingConfig(font_size_threshold=1.2),
     footnote_processing=FootnoteConfig(enabled=False),
     metadata=BookMetadata(title=None, author=None, language="en"),  # None = extract from PDF
+    image_optimization=ImageOptimizationConfig(enabled=True),  # Optimize images by default
 )
 
 

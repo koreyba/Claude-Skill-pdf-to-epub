@@ -8,9 +8,10 @@ logger = get_logger(__name__)
 @dataclass
 class Chapter:
     title: str
-    level: int # 1 for H1, 2 for H2...
+    level: int  # 1 for H1, 2 for H2...
     content_blocks: List[SemanticBlock] = field(default_factory=list)
     subchapters: List['Chapter'] = field(default_factory=list)
+    is_endnotes: bool = False  # True if this is the endnotes chapter
     
     def get_text(self) -> str:
         """Get all text from this chapter including subchapters."""
@@ -146,7 +147,8 @@ class StructureBuilder:
             endnotes_chapter = Chapter(
                 title="Endnotes",
                 level=1,
-                content_blocks=endnote_blocks
+                content_blocks=endnote_blocks,
+                is_endnotes=True  # Mark as endnotes chapter for special rendering
             )
             root_chapters.append(endnotes_chapter)
             logger.info(f"Created Endnotes chapter with {len(endnote_blocks)} notes")
