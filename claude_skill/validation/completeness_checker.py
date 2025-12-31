@@ -1,5 +1,7 @@
+# FROZEN: Do not modify - metrics must be reproducible
+# See ~/.claude/skills/pdf-to-epub/reference/architecture.md
 """
-Completeness checker for verifying that all text from source (PDF) 
+Completeness checker for verifying that all text from source (PDF)
 is present in the target (EPUB).
 """
 

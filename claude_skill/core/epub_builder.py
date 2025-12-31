@@ -1,3 +1,5 @@
+# FROZEN: Do not modify - implements EPUB3 specification
+# See ~/.claude/skills/pdf-to-epub/reference/architecture.md
 """EPUB file builder."""
 
 import tempfile

@@ -1,3 +1,5 @@
+# ADAPTABLE: Can be extended with new hook methods
+# See ~/.claude/skills/pdf-to-epub/reference/code-adaptation.md
 """Base class for conversion strategies."""
 
 from abc import ABC, abstractmethod

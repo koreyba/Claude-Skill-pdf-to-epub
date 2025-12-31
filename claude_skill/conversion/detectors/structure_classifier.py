@@ -1,3 +1,5 @@
+# ADAPTABLE: Heading detection heuristics can be tuned
+# See ~/.claude/skills/pdf-to-epub/reference/code-adaptation.md
 import re
 from typing import List, Dict
 from claude_skill.conversion.detectors.models import TextBlock, SemanticBlock

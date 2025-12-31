@@ -1,3 +1,5 @@
+# ADAPTABLE: Can be extended or used as template for new strategies
+# See ~/.claude/skills/pdf-to-epub/reference/code-adaptation.md
 """Simple conversion strategy for single-column fiction books."""
 
 from pathlib import Path

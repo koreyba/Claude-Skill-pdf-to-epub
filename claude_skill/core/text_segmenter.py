@@ -1,3 +1,5 @@
+# FROZEN: Do not modify - validation depends on identical segmentation
+# See ~/.claude/skills/pdf-to-epub/reference/architecture.md
 """
 Text segmentation module for deterministic slicing of long strings into overlapping chunks.
 """

@@ -1,3 +1,5 @@
+# ADAPTABLE: New footnote patterns can be added to PATTERNS dict
+# See ~/.claude/skills/pdf-to-epub/reference/code-adaptation.md
 """Detects footnote references in text blocks and converts them to hyperlinks."""
 
 from typing import List, Optional

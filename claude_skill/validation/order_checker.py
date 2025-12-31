@@ -1,3 +1,5 @@
+# FROZEN: Do not modify - metrics must be reproducible
+# See ~/.claude/skills/pdf-to-epub/reference/architecture.md
 from typing import List
 from claude_skill.core.utils import get_logger
 from claude_skill.validation.models import FoundChunk

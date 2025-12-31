@@ -1,3 +1,5 @@
+# ADAPTABLE: Column detection thresholds can be tuned
+# See ~/.claude/skills/pdf-to-epub/reference/code-adaptation.md
 from typing import List, Tuple
 from claude_skill.conversion.detectors.models import TextBlock
 from claude_skill.conversion.detectors.reading_order.base import BlockSorter
