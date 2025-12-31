@@ -1,0 +1,37 @@
+{
+  "description": "Configuration for magazines with heavy image content and mixed layouts",
+  "page_ranges": {
+    "skip": [],
+    "content": [1, -1],
+    "endnotes": null
+  },
+  "exclude_regions": {
+    "top": 0.03,
+    "bottom": 0.03,
+    "left": 0.0,
+    "right": 0.0
+  },
+  "multi_column": {
+    "enabled": true,
+    "column_count": 2,
+    "threshold": 0.3
+  },
+  "reading_order_strategy": "xy_cut",
+  "heading_detection": {
+    "font_size_threshold": 1.1,
+    "max_heading_levels": 2
+  },
+  "footnote_processing": {
+    "enabled": false
+  },
+  "image_optimization": {
+    "enabled": true,
+    "max_width": 800,
+    "max_height": 1000,
+    "jpeg_quality": 75,
+    "convert_png_to_jpeg": true
+  },
+  "metadata": {
+    "language": "en"
+  }
+}
