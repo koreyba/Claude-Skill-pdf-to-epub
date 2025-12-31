@@ -6,20 +6,20 @@ from pathlib import Path
 from typing import List, Tuple
 import fitz  # PyMuPDF
 
-from claude_skill.conversion.strategies.base_strategy import BaseStrategy
-from claude_skill.conversion.models import (
+from .base_strategy import BaseStrategy
+from ..models import (
     StructuredContent,
     ImageResource,
     BookMetadata,
     Chapter,
     ImageOptimizationConfig,
 )
-from claude_skill.core.pdf_extractor import PDFExtractor
-from claude_skill.conversion.detectors.models import TextBlock
-from claude_skill.conversion.detectors.reading_order.y_sorter import YSorter
-from claude_skill.conversion.detectors.font_analyzer import FontAnalyzer
-from claude_skill.conversion.detectors.structure_classifier import StructureClassifier
-from claude_skill.conversion.detectors.structure_builder import StructureBuilder
+from ...core.pdf_extractor import PDFExtractor
+from ..detectors.models import TextBlock
+from ..detectors.reading_order.y_sorter import YSorter
+from ..detectors.font_analyzer import FontAnalyzer
+from ..detectors.structure_classifier import StructureClassifier
+from ..detectors.structure_builder import StructureBuilder
 
 
 class SimpleStrategy(BaseStrategy):
@@ -117,7 +117,7 @@ class SimpleStrategy(BaseStrategy):
         Returns:
             List of optimized ImageResource objects
         """
-        from claude_skill.core.image_optimizer import (
+        from ...core.image_optimizer import (
             ImageOptimizer,
             ImageOptimizationConfig as OptConfig
         )
@@ -150,9 +150,9 @@ class SimpleStrategy(BaseStrategy):
         try:
             pdf_meta = doc.metadata or {}
             
-            # Extract metadata with fallback chain: PDF info -> config -> "Unknown"
-            title = pdf_meta.get('title') or (config.metadata.title if config.metadata.title else "Unknown")
-            author = pdf_meta.get('author') or (config.metadata.author if config.metadata.author else "Unknown")
+            # Extract metadata with fallback chain: config -> PDF info -> "Unknown"
+            title = config.metadata.title if config.metadata.title else (pdf_meta.get('title') or "Unknown")
+            author = config.metadata.author if config.metadata.author else (pdf_meta.get('author') or "Unknown")
             language = config.metadata.language or "en"
             publisher = pdf_meta.get('producer')
             description = pdf_meta.get('subject')

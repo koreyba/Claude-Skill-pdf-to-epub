@@ -4,7 +4,7 @@ import sys
 import json
 from pathlib import Path
 
-from claude_skill.conversion.converter import Converter
+from ..conversion.converter import Converter
 
 
 def main():

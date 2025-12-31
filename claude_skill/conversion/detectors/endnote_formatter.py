@@ -3,7 +3,7 @@
 import re
 from typing import List
 
-from claude_skill.conversion.detectors.models import SemanticBlock
+from .models import SemanticBlock
 
 # Pattern to extract endnote number and content
 ENDNOTE_PATTERN = re.compile(r'^(\d{1,2})\s{2,}(.*)$', re.DOTALL)

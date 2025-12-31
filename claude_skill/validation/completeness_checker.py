@@ -7,10 +7,10 @@ is present in the target (EPUB).
 
 import re
 from typing import List, Optional
-from claude_skill.core.text_segmenter import segment_text, normalize_whitespace
-from claude_skill.core.utils import get_logger, DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP
-from claude_skill.validation.models import ValidationFailure, ValidationResult, FoundChunk
-from claude_skill.validation.order_checker import OrderChecker
+from ..core.text_segmenter import segment_text, normalize_whitespace
+from ..core.utils import get_logger, DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP
+from .models import ValidationFailure, ValidationResult, FoundChunk
+from .order_checker import OrderChecker
 
 logger = get_logger(__name__)
 

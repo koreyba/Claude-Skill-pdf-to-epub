@@ -9,8 +9,8 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 from typing import Iterator, List, Dict, Any, Optional
 
-from claude_skill.core.utils import get_logger
-from claude_skill.validation.text_canonicalizer import canonicalize
+from .utils import get_logger
+from ..validation.text_canonicalizer import canonicalize
 
 logger = get_logger(__name__)
 

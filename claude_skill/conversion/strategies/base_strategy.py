@@ -11,8 +11,8 @@ from typing import List, Tuple, Union
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from claude_skill.conversion.models import ConversionConfig, StructuredContent, ImageResource, BookMetadata
-    from claude_skill.conversion.detectors.models import TextBlock
+    from ..models import ConversionConfig, StructuredContent, ImageResource, BookMetadata
+    from ..detectors.models import TextBlock
 
 
 class BaseStrategy(ABC):

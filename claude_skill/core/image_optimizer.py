@@ -6,8 +6,8 @@ from typing import Optional, Tuple, List
 
 from PIL import Image
 
-from claude_skill.conversion.models import ImageResource
-from claude_skill.core.utils import get_logger
+from ..conversion.models import ImageResource
+from .utils import get_logger
 
 logger = get_logger(__name__)
 

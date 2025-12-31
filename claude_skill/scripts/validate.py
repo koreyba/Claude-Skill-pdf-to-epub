@@ -3,9 +3,9 @@ import argparse
 import sys
 from pathlib import Path
 
-from claude_skill.core.pdf_extractor import PDFExtractor
-from claude_skill.core.epub_extractor import EPUBExtractor
-from claude_skill.validation.completeness_checker import CompletenessChecker
+from ..core.pdf_extractor import PDFExtractor
+from ..core.epub_extractor import EPUBExtractor
+from ..validation.completeness_checker import CompletenessChecker
 
 
 def main():

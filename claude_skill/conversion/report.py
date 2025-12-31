@@ -5,10 +5,10 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional, List
 
-from claude_skill.conversion.models import ConversionResult, StructuredContent
-from claude_skill.core.pdf_extractor import PDFExtractor
-from claude_skill.core.epub_extractor import EPUBExtractor
-from claude_skill.validation.completeness_checker import CompletenessChecker
+from .models import ConversionResult, StructuredContent
+from ..core.pdf_extractor import PDFExtractor
+from ..core.epub_extractor import EPUBExtractor
+from ..validation.completeness_checker import CompletenessChecker
 
 
 @dataclass

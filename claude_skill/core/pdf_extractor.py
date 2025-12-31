@@ -9,8 +9,8 @@ from pathlib import Path
 from collections import Counter
 from typing import Iterator, List, Dict, Any, Optional
 
-from claude_skill.core.utils import get_logger
-from claude_skill.validation.text_canonicalizer import canonicalize
+from .utils import get_logger
+from ..validation.text_canonicalizer import canonicalize
 
 logger = get_logger(__name__)
 
@@ -149,7 +149,7 @@ class PDFExtractor:
         Extracts blocks with detailed font information for structure detectors.
         Uses 'dict' output from PyMuPDF.
         """
-        from claude_skill.conversion.detectors.models import TextBlock
+        from ..conversion.detectors.models import TextBlock
         
         if not self.doc:
             raise RuntimeError("Document is not open.")

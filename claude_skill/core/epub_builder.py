@@ -10,9 +10,9 @@ from pathlib import Path
 from datetime import datetime, timezone
 from lxml import etree
 
-from claude_skill.conversion.models import StructuredContent
-from claude_skill.conversion.detectors.footnote_detector import FootnoteDetector
-from claude_skill.conversion.detectors.endnote_formatter import EndnoteFormatter
+from ..conversion.models import StructuredContent
+from ..conversion.detectors.footnote_detector import FootnoteDetector
+from ..conversion.detectors.endnote_formatter import EndnoteFormatter
 
 
 class EPUBBuilder:

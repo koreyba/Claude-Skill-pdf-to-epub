@@ -8,9 +8,9 @@ import re
 from dataclasses import dataclass
 from typing import List
 
-from claude_skill.core.utils import (
-    get_logger, 
-    DEFAULT_CHUNK_SIZE, 
+from .utils import (
+    get_logger,
+    DEFAULT_CHUNK_SIZE,
     DEFAULT_OVERLAP
 )
 

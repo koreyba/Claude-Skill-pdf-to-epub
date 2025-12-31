@@ -2,8 +2,8 @@
 # See ~/.claude/skills/pdf-to-epub/reference/code-adaptation.md
 import re
 from typing import List, Dict
-from claude_skill.conversion.detectors.models import TextBlock, SemanticBlock
-from claude_skill.conversion.detectors.font_analyzer import FontAnalyzer
+from .models import TextBlock, SemanticBlock
+from .font_analyzer import FontAnalyzer
 
 # Pattern for endnotes: digit(s) followed by 2+ spaces at start
 ENDNOTE_PATTERN = re.compile(r'^(\d{1,2})\s{2,}')

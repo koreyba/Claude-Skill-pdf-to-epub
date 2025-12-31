@@ -6,8 +6,8 @@ from datetime import datetime
 from typing import Optional, Union
 from dataclasses import asdict
 
-from claude_skill.conversion.strategies import BaseStrategy, SimpleStrategy
-from claude_skill.conversion.models import (
+from .strategies import BaseStrategy, SimpleStrategy
+from .models import (
     ConversionConfig,
     ConversionResult,
     ConversionLog,
@@ -19,7 +19,7 @@ from claude_skill.conversion.models import (
     FootnoteConfig,
     ImageOptimizationConfig,
 )
-from claude_skill.core.epub_builder import EPUBBuilder
+from ..core.epub_builder import EPUBBuilder
 
 
 # Strategy registry

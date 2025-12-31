@@ -7,7 +7,7 @@ import re
 import unicodedata
 from typing import Optional
 
-from claude_skill.core.utils import get_logger
+from ..core.utils import get_logger
 
 logger = get_logger(__name__)
 

@@ -3,7 +3,7 @@ Data models for validation results.
 """
 from dataclasses import dataclass
 from typing import List
-from claude_skill.core.text_segmenter import Chunk
+from ..core.text_segmenter import Chunk
 
 @dataclass(frozen=True)
 class ValidationFailure:

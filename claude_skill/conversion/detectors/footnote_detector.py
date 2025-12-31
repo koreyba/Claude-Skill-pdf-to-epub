@@ -6,7 +6,7 @@ from typing import List, Optional
 from dataclasses import dataclass
 import re
 
-from claude_skill.conversion.detectors.models import SemanticBlock
+from .models import SemanticBlock
 
 
 @dataclass

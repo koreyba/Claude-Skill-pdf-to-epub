@@ -1,8 +1,8 @@
 # ADAPTABLE: Custom sorting logic can be added
 # See ~/.claude/skills/pdf-to-epub/reference/code-adaptation.md
 from typing import List
-from claude_skill.conversion.detectors.models import TextBlock
-from claude_skill.conversion.detectors.reading_order.base import BlockSorter
+from ..models import TextBlock
+from .base import BlockSorter
 
 class YSorter(BlockSorter):
     """

@@ -1,5 +1,5 @@
 ---
-name: pdf-to-epub
+name: convert-pdf-to-epub
 description: >
   Convert PDF books to EPUB format for e-readers. Use when user asks to convert PDF to EPUB,
   create an e-book from PDF, make PDF readable on Kindle/phone/tablet, or extract book content
