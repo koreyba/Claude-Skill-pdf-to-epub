@@ -116,6 +116,7 @@ class ImageResource:
     width: int
     height: int
     page_num: int
+    bbox: Optional[Tuple[float, float, float, float]] = None
     
     def __post_init__(self):
         """Validate image resource fields."""

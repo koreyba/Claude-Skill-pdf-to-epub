@@ -86,7 +86,8 @@ class ImageOptimizer:
                 format=output_format if output_format != 'jpeg' else 'jpg',
                 width=new_width,
                 height=new_height,
-                page_num=image_resource.page_num
+                page_num=image_resource.page_num,
+                bbox=image_resource.bbox
             )
         except Exception as e:
             logger.warning(f"Failed to optimize image {image_resource.filename}: {e}")

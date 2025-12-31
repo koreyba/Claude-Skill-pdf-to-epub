@@ -7,6 +7,8 @@ from .font_analyzer import FontAnalyzer
 
 # Pattern for endnotes: digit(s) followed by 2+ spaces at start
 ENDNOTE_PATTERN = re.compile(r'^(\d{1,2})\s{2,}')
+# Pattern for "Part I" / "Chapter 1" headings
+PART_HEADING_PATTERN = re.compile(r'^(Part|Chapter)\s+([IVXLC]+|\d+)\b', re.IGNORECASE)
 
 class StructureClassifier:
     """
@@ -47,21 +49,34 @@ class StructureClassifier:
             next_block = blocks[i+1] if i < len(blocks) - 1 else None
             
             score, signals = self._calculate_heading_score(block, prev_block, next_block, body_size, body_flags)
+            size_diff = block.font_size - body_size
+            is_bold = (block.flags & 16) != 0
             
             # Determine role based on score
             role = "body"
-            if score >= 75:
+            if score >= 80:
                 role = "h1"
-            elif score >= 50:
+            elif score >= 65:
                 role = "h2"
+            elif score >= 50:
+                role = "h3"
             
             # Explicit override from FontAnalyzer (if it detected HUGE font)
             # We respect strong font signals if they align with our heuristics
             font_role = style_map.get((block.font_name, round(block.font_size, 1), block.flags), "body")
-            if font_role.startswith("h") and int(font_role[1:]) <= 2:
-                 # If FontAnalyzer was SUPER sure (very large size), trust it regardless of punctuation score
-                 if role == "body": 
-                     role = font_role
+            if font_role == "h1" and role in ("body", "h2", "h3"):
+                role = "h1"
+            elif font_role == "h2" and role == "body":
+                role = "h2"
+
+            if role.startswith("h"):
+                if not is_bold and size_diff <= 0.3:
+                    role = "body"
+                elif is_bold and size_diff <= 0.3:
+                    role = "h3"
+
+            if self._is_part_heading(block.text) and is_bold and size_diff >= 0.5:
+                role = "h1"
 
             # List item check (post-processing)
             if role == "body" and self._is_list_item(block.text.strip()):
@@ -93,6 +108,7 @@ class StructureClassifier:
 
         is_same_page_prev = prev and prev.page == block.page
         is_same_page_next = next_b and next_b.page == block.page
+        looks_like_continuation = self._looks_like_continuation(text)
 
         # 1. Style Distinction (Bold)
         # Check fitz flags for bold (usually bit 4 -> 16)
@@ -142,11 +158,11 @@ class StructureClassifier:
         # We assume standard line height is approx body_size * 1.2
         line_height = body_size * 1.2
         
-        if top_margin > line_height * 1.5:
+        if top_margin > line_height * 1.5 and not looks_like_continuation:
              score += 10
              signals.append("TopMargin")
              
-        if top_margin > bottom_margin * 1.5 and bottom_margin > 0:
+        if top_margin > bottom_margin * 1.5 and bottom_margin > 0 and not looks_like_continuation:
              score += 15
              signals.append("Top>Bottom")
 
@@ -158,6 +174,20 @@ class StructureClassifier:
             return True
         # Check "1. ", "2. ", "10. ", etc.
         if re.match(r'^\d+\.\s', text):
+            return True
+        return False
+
+    def _is_part_heading(self, text: str) -> bool:
+        if not text:
+            return False
+        return bool(PART_HEADING_PATTERN.match(text.strip()))
+
+    def _looks_like_continuation(self, text: str) -> bool:
+        if not text:
+            return False
+        if text[0].islower():
+            return True
+        if ("," in text or "." in text[:-1]) and text[-1] not in ".:;?!":
             return True
         return False
 

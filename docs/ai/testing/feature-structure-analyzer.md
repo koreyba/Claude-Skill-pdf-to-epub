@@ -15,6 +15,8 @@ description: Test strategy for structure detection.
 - **Assertion:** ToC contains "Chapter 1", "Chapter 2".
 - **Fixture:** `footnote_page.pdf`.
 - **Assertion:** Link exists from `[1]` to bottom text.
+- **Fixture:** `Excerpt C The Ways We Are in This Together.pdf`.
+- **Assertion:** "Excerpt C..." and "Part I..." are H1; "Important" is H2; "Overview" is H3; specific body sentences are not headings.
 
 ## Edge Cases
 - **No Headers:** Book is one giant chapter?

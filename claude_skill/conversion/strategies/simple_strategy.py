@@ -3,7 +3,8 @@
 """Simple conversion strategy for single-column fiction books."""
 
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Dict
+import re
 import fitz  # PyMuPDF
 
 from .base_strategy import BaseStrategy
@@ -21,6 +22,8 @@ from ..detectors.reading_order.xy_cut_sorter import XYCutSorter
 from ..detectors.font_analyzer import FontAnalyzer
 from ..detectors.structure_classifier import StructureClassifier
 from ..detectors.structure_builder import StructureBuilder
+from ..detectors.footnote_detector import FootnoteDetector
+from ..detectors.endnote_formatter import EndnoteFormatter
 
 
 class SimpleStrategy(BaseStrategy):
@@ -72,35 +75,88 @@ class SimpleStrategy(BaseStrategy):
         """
         images = []
         doc = fitz.open(str(pdf_path))
-        
+
         try:
             for page_num, page in enumerate(doc, start=1):
-                # Get all images on this page
-                image_list = page.get_images(full=True)
-                
-                for img_index, img in enumerate(image_list, start=1):
+                blocks = page.get_text("dict").get("blocks", [])
+                image_blocks = [b for b in blocks if b.get("type") == 1]
+                seen_xrefs = set()
+
+                for img_index, block in enumerate(image_blocks, start=1):
+                    xref = block.get("xref")
                     try:
-                        xref = img[0]  # Image reference number
-                        base_image = doc.extract_image(xref)
-                        
-                        # Create ImageResource
+                        if xref:
+                            base_image = doc.extract_image(xref)
+                            image_data = base_image["image"]
+                            ext = base_image.get("ext", "png")
+                            width = base_image["width"]
+                            height = base_image["height"]
+                        else:
+                            image_data = block.get("image")
+                            ext = block.get("ext", "png")
+                            width = int(block.get("width", 0))
+                            height = int(block.get("height", 0))
+
+                        if not image_data:
+                            continue
+
+                        if ext not in ["png", "jpeg", "jpg", "gif"]:
+                            print(
+                                f"Warning: Unsupported image format '{ext}' on page {page_num}; skipping."
+                            )
+                            continue
+
                         image_resource = ImageResource(
                             id=f"img-page-{page_num}-{img_index}",
-                            filename=f"image{len(images)+1:03d}.{base_image['ext']}",
-                            data=base_image["image"],
-                            format=base_image["ext"],
-                            width=base_image["width"],
-                            height=base_image["height"],
-                            page_num=page_num
+                            filename=f"image{len(images)+1:03d}.{ext}",
+                            data=image_data,
+                            format=ext,
+                            width=width,
+                            height=height,
+                            page_num=page_num,
+                            bbox=tuple(block.get("bbox", (0, 0, 0, 0)))
                         )
                         images.append(image_resource)
+                        if xref:
+                            seen_xrefs.add(xref)
                     except Exception as e:
                         # Skip images that can't be extracted
                         print(f"Warning: Could not extract image {img_index} from page {page_num}: {e}")
                         continue
+
+                # Fallback: extract images without bbox if dict blocks are missing
+                if not image_blocks:
+                    image_list = page.get_images(full=True)
+                    for img_index, img in enumerate(image_list, start=1):
+                        xref = img[0]
+                        if xref in seen_xrefs:
+                            continue
+                        try:
+                            base_image = doc.extract_image(xref)
+                            ext = base_image.get("ext", "png")
+                            if ext not in ["png", "jpeg", "jpg", "gif"]:
+                                print(
+                                    f"Warning: Unsupported image format '{ext}' on page {page_num}; skipping."
+                                )
+                                continue
+
+                            image_resource = ImageResource(
+                                id=f"img-page-{page_num}-fallback-{img_index}",
+                                filename=f"image{len(images)+1:03d}.{ext}",
+                                data=base_image["image"],
+                                format=ext,
+                                width=base_image["width"],
+                                height=base_image["height"],
+                                page_num=page_num,
+                                bbox=None
+                            )
+                            images.append(image_resource)
+                        except Exception as e:
+                            print(f"Warning: Could not extract image {img_index} from page {page_num}: {e}")
+                            continue
         finally:
             doc.close()
-        
+
         return images
 
     def _optimize_images(
@@ -246,5 +302,287 @@ class SimpleStrategy(BaseStrategy):
             reading_order_confidence=0.0,  # Will be set by BaseStrategy
             images=images
         )
+
+        # Build rendered chapters with images interleaved for EPUB output
+        structured.rendered_chapters = self._render_chapters_with_images(chapters, images, config)
         
         return structured
+
+    def _render_chapters_with_images(
+        self,
+        chapters,
+        images: List[ImageResource],
+        config
+    ) -> List[Chapter]:
+        image_by_index = self._index_images(images)
+        chapter_index_map = {}
+        for idx, chapter in enumerate(chapters, start=1):
+            self._map_chapter_indices(chapter, idx, chapter_index_map)
+
+        images_by_chapter = self._assign_images_to_chapters(chapters, images, chapter_index_map)
+        endnotes_filename = self._get_endnotes_filename(chapters)
+        footnote_patterns = getattr(getattr(config, "footnote_processing", None), "patterns", None)
+
+        rendered = []
+        for idx, chapter in enumerate(chapters, start=1):
+            if getattr(chapter, "is_endnotes", False):
+                formatter = EndnoteFormatter()
+                html = formatter.format_endnotes(chapter.content_blocks)
+                rendered.append(Chapter(title=chapter.title, level=1, content=html, footnotes=[]))
+                continue
+
+            chapter_html = self._render_chapter_section(
+                chapter=chapter,
+                images_by_chapter=images_by_chapter,
+                endnotes_filename=endnotes_filename,
+                image_by_index=image_by_index,
+                chapter_file_index=idx,
+                footnote_patterns=footnote_patterns
+            )
+            rendered.append(
+                Chapter(
+                    title=chapter.title,
+                    level=self._normalize_level(chapter.level),
+                    content=chapter_html,
+                    footnotes=[]
+                )
+            )
+
+        return rendered
+
+    def _index_images(self, images: List[ImageResource]) -> Dict[int, ImageResource]:
+        def sort_key(img: ImageResource):
+            y0 = img.bbox[1] if img.bbox else 0.0
+            x0 = img.bbox[0] if img.bbox else 0.0
+            return (img.page_num, y0, x0)
+
+        image_by_index = {}
+        for idx, img in enumerate(sorted(images, key=sort_key), start=1):
+            img.anchor_id = f"img-{idx}"
+            img.sequence_num = idx
+            image_by_index[idx] = img
+        return image_by_index
+
+    def _map_chapter_indices(self, chapter, top_index: int, mapping: Dict[int, int]) -> None:
+        mapping[id(chapter)] = top_index
+        for sub in getattr(chapter, "subchapters", []):
+            self._map_chapter_indices(sub, top_index, mapping)
+
+    def _assign_images_to_chapters(self, chapters, images, chapter_index_map: Dict[int, int]) -> Dict[int, List[ImageResource]]:
+        chapter_blocks = []
+        self._collect_chapter_blocks(chapters, chapter_blocks)
+
+        images_by_chapter = {}
+        if not chapter_blocks:
+            if chapters:
+                for img in images:
+                    img.chapter_index = 1
+                images_by_chapter[id(chapters[0])] = list(images)
+            return images_by_chapter
+
+        for img in images:
+            best = None
+            img_y = img.bbox[1] if img.bbox else 0.0
+
+            for chapter, block in chapter_blocks:
+                page_diff = abs(img.page_num - block.original_block.page)
+                y_diff = abs(img_y - block.original_block.y0)
+                score = page_diff * 10000 + y_diff
+                if best is None or score < best[0]:
+                    best = (score, chapter)
+
+            if best:
+                images_by_chapter.setdefault(id(best[1]), []).append(img)
+                img.chapter_index = chapter_index_map.get(id(best[1]), 1)
+
+        return images_by_chapter
+
+    def _collect_chapter_blocks(self, chapters, bucket: list) -> None:
+        for chapter in chapters:
+            for block in getattr(chapter, "content_blocks", []):
+                bucket.append((chapter, block))
+            for sub in getattr(chapter, "subchapters", []):
+                self._collect_chapter_blocks([sub], bucket)
+
+    def _get_endnotes_filename(self, chapters) -> str | None:
+        for idx, chapter in enumerate(chapters, start=1):
+            if getattr(chapter, "is_endnotes", False):
+                return f"chapter{idx}.xhtml"
+        return None
+
+    def _render_chapter_section(
+        self,
+        chapter,
+        images_by_chapter: Dict[int, List[ImageResource]],
+        endnotes_filename: str | None,
+        image_by_index: Dict[int, ImageResource],
+        chapter_file_index: int,
+        include_heading: bool = False,
+        footnote_patterns: List[str] | None = None
+    ) -> str:
+        html_parts = []
+        if include_heading:
+            level = max(2, min(6, chapter.level))
+            html_parts.append(f"<h{level}>{self._escape_html(chapter.title)}</h{level}>")
+
+        blocks = getattr(chapter, "content_blocks", [])
+        images = images_by_chapter.get(id(chapter), [])
+        html_parts.append(
+            self._render_blocks_with_images(
+                blocks=blocks,
+                images=images,
+                endnotes_filename=endnotes_filename,
+                image_by_index=image_by_index,
+                chapter_file_index=chapter_file_index,
+                skip_heading_title=chapter.title,
+                footnote_patterns=footnote_patterns
+            )
+        )
+
+        for sub in getattr(chapter, "subchapters", []):
+            html_parts.append(
+                self._render_chapter_section(
+                    chapter=sub,
+                images_by_chapter=images_by_chapter,
+                endnotes_filename=endnotes_filename,
+                image_by_index=image_by_index,
+                chapter_file_index=chapter_file_index,
+                include_heading=True,
+                footnote_patterns=footnote_patterns
+            )
+            )
+
+        return "\n".join(part for part in html_parts if part)
+
+    def _render_blocks_with_images(
+        self,
+        blocks,
+        images: List[ImageResource],
+        endnotes_filename: str | None,
+        image_by_index: Dict[int, ImageResource],
+        chapter_file_index: int,
+        skip_heading_title: str | None = None,
+        footnote_patterns: List[str] | None = None
+    ) -> str:
+        items = []
+        for block in blocks:
+            items.append(("text", block, block.original_block.page, block.original_block.y0, block.original_block.x0))
+        for img in images:
+            y0 = img.bbox[1] if img.bbox else 0.0
+            x0 = img.bbox[0] if img.bbox else 0.0
+            items.append(("image", img, img.page_num, y0, x0))
+
+        items.sort(key=lambda item: (item[2], item[3], item[4], 0 if item[0] == "text" else 1))
+
+        detector = FootnoteDetector(patterns=footnote_patterns) if endnotes_filename else None
+        html_parts = []
+        current_paragraph = ""
+
+        def flush_paragraph():
+            nonlocal current_paragraph
+            if not current_paragraph:
+                return
+            escaped = self._escape_html(current_paragraph.strip())
+            escaped = self._link_figure_refs(escaped, image_by_index, chapter_file_index)
+            if detector:
+                escaped = detector.convert_to_hyperlinks(escaped, endnotes_filename)
+            html_parts.append(f"<p>{escaped}</p>")
+            current_paragraph = ""
+
+        for kind, payload, _, _, _ in items:
+            if kind == "image":
+                flush_paragraph()
+                html_parts.append(self._render_image_html(payload))
+                continue
+
+            text = payload.original_block.text.strip()
+            if not text:
+                continue
+
+            if payload.role.startswith("h") and skip_heading_title and text == skip_heading_title:
+                continue
+
+            if payload.role.startswith("h") and payload.role[1:].isdigit():
+                flush_paragraph()
+                level = max(2, min(6, int(payload.role[1:])))
+                html_parts.append(f"<h{level}>{self._escape_html(text)}</h{level}>")
+                continue
+
+            if not current_paragraph:
+                current_paragraph = text
+            elif self._is_continuation(current_paragraph, text):
+                current_paragraph += " " + text
+            else:
+                flush_paragraph()
+                current_paragraph = text
+
+        flush_paragraph()
+        return "\n".join(html_parts)
+
+    def _render_image_html(self, image: ImageResource) -> str:
+        anchor_id = getattr(image, "anchor_id", image.id)
+        seq = getattr(image, "sequence_num", None)
+        alt_text = f"Figure {seq}" if seq else f"Image from page {image.page_num}"
+        return (
+            f'<figure class="chapter-image" id="{anchor_id}">\n'
+            f'  <img src="images/{image.filename}" alt="{alt_text}"/>\n'
+            f'</figure>'
+        )
+
+    def _link_figure_refs(
+        self,
+        text: str,
+        image_by_index: Dict[int, ImageResource],
+        chapter_file_index: int
+    ) -> str:
+        patterns = [
+            re.compile(r'\b(Fig(?:ure)?\.?)\s*(\d{1,3})\b', re.IGNORECASE),
+            re.compile(r'\b(Рис(?:\.|унок)?\.?)\s*(\d{1,3})\b', re.IGNORECASE),
+        ]
+
+        def replacer(match):
+            label = match.group(1)
+            num = int(match.group(2))
+            image = image_by_index.get(num)
+            if not image:
+                return match.group(0)
+            anchor_id = getattr(image, "anchor_id", image.id)
+            target_chapter = getattr(image, "chapter_index", chapter_file_index)
+            if target_chapter == chapter_file_index:
+                href = f"#{anchor_id}"
+            else:
+                href = f"chapter{target_chapter}.xhtml#{anchor_id}"
+            return f'<a href="{href}" class="figure-ref">{label} {num}</a>'
+
+        linked = text
+        for pattern in patterns:
+            linked = pattern.sub(replacer, linked)
+        return linked
+
+    def _escape_html(self, text: str) -> str:
+        if not text:
+            return ""
+        return (text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace('"', "&quot;")
+                .replace("'", "&#39;"))
+
+    def _is_continuation(self, prev_text: str, curr_text: str) -> bool:
+        if not prev_text or not curr_text:
+            return False
+
+        prev_ends_sentence = prev_text.rstrip()[-1] in ".!?:;"
+        curr_starts_lower = curr_text[0].islower()
+        prev_ends_hyphen = prev_text.rstrip().endswith("-")
+
+        if prev_ends_hyphen:
+            return True
+        if not prev_ends_sentence and curr_starts_lower:
+            return True
+
+        return False
+
+    def _normalize_level(self, level: int) -> int:
+        return max(1, min(3, level))

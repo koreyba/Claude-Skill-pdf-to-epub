@@ -18,6 +18,7 @@ from .models import (
     HeadingConfig,
     FootnoteConfig,
     ImageOptimizationConfig,
+    StructuredContent,
 )
 from ..core.epub_builder import EPUBBuilder
 
@@ -121,7 +122,16 @@ class Converter:
             
             # Step 3: Build EPUB file
             log.steps_completed.append("building_epub")
-            epub_path = self.epub_builder.build(structured_content, output_path)
+            build_content = structured_content
+            if hasattr(structured_content, "rendered_chapters"):
+                build_content = StructuredContent(
+                    chapters=structured_content.rendered_chapters,
+                    metadata=structured_content.metadata,
+                    reading_order_confidence=structured_content.reading_order_confidence,
+                    images=structured_content.images
+                )
+
+            epub_path = self.epub_builder.build(build_content, output_path)
             
             # Determine status
             status = "success"

@@ -2,18 +2,31 @@ from pathlib import Path
 
 import pytest
 
+from claude_skill.conversion.converter import Converter
 from claude_skill.conversion.pdf_analyzer import PDFAnalyzer
 from claude_skill.validation.validator import Validator
 
 
 @pytest.fixture
 def pdf_path():
-    return Path(__file__).parent.parent / "fixtures" / "Excerpt C The Ways We Are in This Together.pdf"
+    return Path(__file__).parent.parent / "fixtures" / "Excerpt_B_The_Many_Ways_We_Touch_Three_P.pdf"
 
 
 @pytest.fixture
-def epub_path():
-    return Path(__file__).parent.parent / "fixtures" / "Excerpt C The Ways We Are in This Together.epub"
+def output_dir(tmp_path):
+    return tmp_path / "output"
+
+
+@pytest.fixture
+def epub_path(pdf_path, output_dir):
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / "excerpt_b.epub"
+
+    converter = Converter(strategy="simple")
+    result = converter.convert(str(pdf_path), str(output_path))
+
+    assert result.status in ("success", "warning")
+    return Path(result.epub_path)
 
 
 def test_pdf_analyzer_report_and_config(pdf_path):
