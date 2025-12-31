@@ -1,4 +1,4 @@
-"""CLI for PDF structure analysis."""
+﻿"""CLI for PDF structure analysis."""
 import argparse
 import sys
 import json
@@ -47,6 +47,15 @@ def main():
             config_path=config_path
         )
         
+        def _has_content(chapter) -> bool:
+            if hasattr(chapter, "content_blocks"):
+                return bool(chapter.content_blocks)
+            if hasattr(chapter, "content"):
+                return bool(chapter.content)
+            if hasattr(chapter, "get_text"):
+                return bool(chapter.get_text().strip())
+            return False
+
         # Build analysis report
         analysis = {
             "pdf_file": str(pdf_path),
@@ -62,7 +71,7 @@ def main():
                 {
                     "title": ch.title,
                     "level": ch.level,
-                    "has_content": bool(ch.content_blocks)
+                    "has_content": _has_content(ch)
                 }
                 for ch in (result.structured_content.chapters if result.structured_content else [])
             ],
@@ -76,7 +85,7 @@ def main():
         
         if args.output:
             Path(args.output).write_text(output_json, encoding='utf-8')
-            print(f"✓ Analysis saved to: {args.output}")
+            print(f"Analysis saved to: {args.output}")
         else:
             print("\nAnalysis Result:")
             print(output_json)
@@ -95,4 +104,5 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
 

@@ -175,12 +175,25 @@ class Converter:
         with open(config_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        # Merge with defaults
-        merged = {**asdict(DEFAULT_CONFIG), **data}
-        
-        # TODO: Properly deserialize nested dataclasses
-        # For now, return default config
-        return DEFAULT_CONFIG
+        # Merge with defaults and deserialize nested dataclasses
+        merged = self._deep_merge(asdict(DEFAULT_CONFIG), data)
+        return ConversionConfig.from_dict(merged)
+
+    def _deep_merge(self, base: dict, override: dict) -> dict:
+        """
+        Recursively merge override into base without losing nested defaults.
+        """
+        if not isinstance(override, dict):
+            return override
+
+        merged = dict(base)
+        for key, value in override.items():
+            if key in merged and isinstance(merged[key], dict) and isinstance(value, dict):
+                merged[key] = self._deep_merge(merged[key], value)
+            else:
+                merged[key] = value
+
+        return merged
     
     def _validate_config(self, config: ConversionConfig) -> None:
         """

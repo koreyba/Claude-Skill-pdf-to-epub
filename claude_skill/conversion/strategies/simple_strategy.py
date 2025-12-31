@@ -17,6 +17,7 @@ from ..models import (
 from ...core.pdf_extractor import PDFExtractor
 from ..detectors.models import TextBlock
 from ..detectors.reading_order.y_sorter import YSorter
+from ..detectors.reading_order.xy_cut_sorter import XYCutSorter
 from ..detectors.font_analyzer import FontAnalyzer
 from ..detectors.structure_classifier import StructureClassifier
 from ..detectors.structure_builder import StructureBuilder
@@ -181,7 +182,11 @@ class SimpleStrategy(BaseStrategy):
         Returns:
             Tuple of (ordered blocks, confidence=1.0)
         """
-        sorter = YSorter()
+        strategy = getattr(config, "reading_order_strategy", "y_sort")
+        if strategy in ["xy_cut", "column_based"]:
+            sorter = XYCutSorter()
+        else:
+            sorter = YSorter()
         ordered_blocks = sorter.sort_blocks(blocks)
         
         # Y-sort is deterministic, so confidence is always 1.0

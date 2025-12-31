@@ -6,6 +6,7 @@ pdfplumber>=0.10.0
 
 # XML/HTML processing
 lxml>=5.0.0
+beautifulsoup4>=4.12.0
 
 # Image processing
 Pillow>=10.0.0

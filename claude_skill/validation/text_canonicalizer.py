@@ -1,4 +1,4 @@
-"""
+﻿"""
 Text canonicalization module to unify text representation from different sources (PDF, EPUB).
 Handles Unicode normalization, ligatures, and hyphenation.
 """
@@ -21,7 +21,7 @@ LIGATURES_MAP = {
     "æ": "ae",
     "œ": "oe",
     "Æ": "AE",
-    "Œ": "OE"
+    "Œ": "OE",
 }
 
 def resolve_ligatures(text: str) -> str:
@@ -87,3 +87,4 @@ def canonicalize(text: str, aggressive: bool = False) -> str:
         logger.debug("Aggressive canonicalization applied.")
 
     return result
+
