@@ -56,8 +56,8 @@ class EPUBBuilder:
             # Step 4: Save images to OEBPS/images/
             self._save_images(temp_path, content.images)
             
-            # Step 5: Write chapter XHTML files
-            self._write_chapters(temp_path, content.chapters)
+            # Step 5: Write chapter XHTML files (with embedded images)
+            self._write_chapters(temp_path, content.chapters, content.images)
             
             # Step 6: Write stylesheet
             self._write_stylesheet(temp_path)
@@ -104,8 +104,10 @@ class EPUBBuilder:
             image_path = images_dir / image.filename
             image_path.write_bytes(image.data)
     
-    def _write_chapters(self, temp_path: Path, chapters):
-        """Write chapter XHTML files."""
+    def _write_chapters(self, temp_path: Path, chapters, images=None):
+        """Write chapter XHTML files with embedded images."""
+        images = images or []
+
         # Find endnotes chapter to get its filename for hyperlinks
         endnotes_filename = None
         for i, chapter in enumerate(chapters, start=1):
@@ -113,13 +115,42 @@ class EPUBBuilder:
                 endnotes_filename = f"chapter{i}.xhtml"
                 break
 
+        # Build page-to-chapter mapping to assign images to chapters
+        chapter_page_ranges = []
+        for i, chapter in enumerate(chapters, start=1):
+            pages = self._get_chapter_pages(chapter)
+            chapter_page_ranges.append((i, pages))
+
         for i, chapter in enumerate(chapters, start=1):
             chapter_path = temp_path / "OEBPS" / f"chapter{i}.xhtml"
-            chapter_html = self._generate_chapter_xhtml(chapter, i, endnotes_filename)
+
+            # Get images for this chapter based on page numbers
+            chapter_pages = chapter_page_ranges[i-1][1]
+            chapter_images = [img for img in images if img.page_num in chapter_pages]
+
+            chapter_html = self._generate_chapter_xhtml(
+                chapter, i, endnotes_filename, chapter_images
+            )
             chapter_path.write_text(chapter_html, encoding="utf-8")
+
+    def _get_chapter_pages(self, chapter) -> set:
+        """Get the set of page numbers covered by a chapter."""
+        pages = set()
+        if hasattr(chapter, 'content_blocks'):
+            for block in chapter.content_blocks:
+                if hasattr(block, 'original_block') and hasattr(block.original_block, 'page'):
+                    pages.add(block.original_block.page)
+        if hasattr(chapter, 'subchapters'):
+            for sub in chapter.subchapters:
+                pages.update(self._get_chapter_pages(sub))
+        return pages
     
-    def _generate_chapter_xhtml(self, chapter, chapter_num: int, endnotes_filename: str = None) -> str:
-        """Generate XHTML content for a chapter."""
+    def _generate_chapter_xhtml(
+        self, chapter, chapter_num: int, endnotes_filename: str = None, images: list = None
+    ) -> str:
+        """Generate XHTML content for a chapter with embedded images."""
+        images = images or []
+
         # Escape HTML entities
         title = self._escape_html(chapter.title)
 
@@ -138,6 +169,9 @@ class EPUBBuilder:
         else:
             content = ""
 
+        # Generate image HTML for this chapter
+        images_html = self._generate_images_html(images)
+
         # Set epub:type based on chapter type
         epub_type = "endnotes" if is_endnotes else "chapter"
 
@@ -152,12 +186,30 @@ class EPUBBuilder:
 <body>
   <section epub:type="{epub_type}" id="chapter{chapter_num}">
     <h1>{title}</h1>
+{images_html}
     {content}
   </section>
 </body>
 </html>'''
 
         return xhtml
+
+    def _generate_images_html(self, images: list) -> str:
+        """Generate HTML for chapter images."""
+        if not images:
+            return ""
+
+        html_parts = []
+        for img in images:
+            # Generate img tag with alt text
+            alt_text = f"Image from page {img.page_num}"
+            html_parts.append(
+                f'    <figure class="chapter-image">\n'
+                f'      <img src="images/{img.filename}" alt="{alt_text}"/>\n'
+                f'    </figure>'
+            )
+
+        return '\n'.join(html_parts)
 
     def _generate_endnotes_content(self, chapter) -> str:
         """Generate HTML content for endnotes chapter using EndnoteFormatter."""
@@ -231,6 +283,18 @@ p {
 }
 
 img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Chapter images */
+.chapter-image {
+    margin: 1.5em auto;
+    text-align: center;
+}
+
+.chapter-image img {
     max-width: 100%;
     height: auto;
 }

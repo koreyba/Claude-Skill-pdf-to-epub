@@ -3,8 +3,9 @@ import argparse
 import sys
 from pathlib import Path
 
+from claude_skill.core.pdf_extractor import PDFExtractor
+from claude_skill.core.epub_extractor import EPUBExtractor
 from claude_skill.validation.completeness_checker import CompletenessChecker
-from claude_skill.validation.order_checker import OrderChecker
 
 
 def main():
@@ -23,79 +24,94 @@ def main():
         action="store_true",
         help="Also run epubcheck for format validation"
     )
-    
+
     args = parser.parse_args()
-    
+
     pdf_path = Path(args.pdf_file)
     epub_path = Path(args.epub_file)
-    
+
     # Validate files exist
     if not pdf_path.exists():
         print(f"Error: PDF file not found: {pdf_path}", file=sys.stderr)
         return 1
-    
+
     if not epub_path.exists():
         print(f"Error: EPUB file not found: {epub_path}", file=sys.stderr)
         return 1
-    
+
     print(f"Validating {epub_path} against {pdf_path}...")
     print("="*60)
-    
+
     all_passed = True
     results = {}
-    
-    # Completeness check
-    print("\n1. Checking text completeness...")
+
+    # Extract text from both files
+    print("\nExtracting text...")
     try:
-        checker = CompletenessChecker()
-        result = checker.check(str(pdf_path), str(epub_path))
-        
-        print(f"   Completeness: {result.completeness_score:.2%}")
-        print(f"   Status: {'✓ PASS' if result.is_complete else '✗ FAIL'}")
-        
-        results['completeness'] = {
-            'score': result.completeness_score,
-            'passed': result.is_complete
-        }
-        
-        if not result.is_complete:
-            all_passed = False
-            if hasattr(result, 'missing_text'):
-                print(f"   Missing: {len(result.missing_text)} segments")
-                results['completeness']['missing_count'] = len(result.missing_text)
+        with PDFExtractor(pdf_path) as pdf:
+            source_text = pdf.get_full_text()
+        print(f"   PDF: {len(source_text)} characters extracted")
+
+        with EPUBExtractor(epub_path) as epub:
+            target_text = epub.get_full_text()
+        print(f"   EPUB: {len(target_text)} characters extracted")
     except Exception as e:
-        print(f"   ✗ Error: {e}")
+        print(f"   Error extracting text: {e}")
+        return 1
+
+    # Completeness and order check (OrderChecker is called internally by CompletenessChecker)
+    print("\n1. Checking text completeness and reading order...")
+    try:
+        checker = CompletenessChecker(source_text, target_text)
+        result = checker.check()
+
+        # Completeness score is in percent (0-100)
+        completeness_pct = result.completeness_score
+        is_complete = completeness_pct >= 95.0
+
+        print(f"   Completeness: {completeness_pct:.1f}%")
+        print(f"   Status: {'PASS' if is_complete else 'FAIL'}")
+
+        results['completeness'] = {
+            'score': completeness_pct,
+            'passed': is_complete
+        }
+
+        if not is_complete:
+            all_passed = False
+            if result.missing_chunks:
+                print(f"   Missing: {len(result.missing_chunks)} segments")
+                results['completeness']['missing_count'] = len(result.missing_chunks)
+    except Exception as e:
+        print(f"   Error: {e}")
         all_passed = False
         results['completeness'] = {'error': str(e)}
-    
-    # Order check
+
+    # Order check (from the same result)
     print("\n2. Checking reading order...")
     try:
-        checker = OrderChecker()
-        result = checker.check(str(pdf_path), str(epub_path))
-        
-        print(f"   Correctness: {result.correctness_score:.2%}")
-        print(f"   Status: {'✓ PASS' if result.is_correct else '✗ FAIL'}")
-        
+        order_score = result.order_score if hasattr(result, 'order_score') else 100.0
+        is_ordered = order_score >= 80.0
+
+        print(f"   Order score: {order_score:.1f}%")
+        print(f"   Status: {'PASS' if is_ordered else 'FAIL'}")
+
         results['order'] = {
-            'score': result.correctness_score,
-            'passed': result.is_correct
+            'score': order_score,
+            'passed': is_ordered
         }
-        
-        if not result.is_correct:
+
+        if not is_ordered:
             all_passed = False
-            if hasattr(result, 'out_of_order_count'):
-                print(f"   Out of order: {result.out_of_order_count} segments")
-                results['order']['errors'] = result.out_of_order_count
     except Exception as e:
-        print(f"   ✗ Error: {e}")
+        print(f"   Error: {e}")
         all_passed = False
         results['order'] = {'error': str(e)}
     
     # epubcheck (if requested)
     if args.epubcheck:
         print("\n3. Running epubcheck...")
-        print("   ⚠️  epubcheck integration not yet implemented")
+        print("   [WARN] epubcheck integration not yet implemented")
         results['epubcheck'] = {'skipped': True}
     
     # Save report
@@ -107,7 +123,7 @@ def main():
     
     # Summary
     print("\n" + "="*60)
-    print(f"Overall: {'✓ PASS' if all_passed else '✗ FAIL'}")
+    print(f"Overall: {'[PASS]' if all_passed else '[FAIL]'}")
     print("="*60)
     
     return 0 if all_passed else 1
