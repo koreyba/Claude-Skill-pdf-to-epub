@@ -1,5 +1,6 @@
 """Main validation orchestrator."""
 
+import re
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -7,6 +8,7 @@ from ..core.pdf_extractor import PDFExtractor
 from ..core.epub_extractor import EPUBExtractor
 from ..core.utils import get_logger
 from .completeness_checker import CompletenessChecker
+from .text_canonicalizer import canonicalize
 
 logger = get_logger(__name__)
 
@@ -65,6 +67,10 @@ class Validator:
 
         completeness_score = result.completeness_score
         order_score = result.order_score if hasattr(result, "order_score") else 100.0
+        found_summary = self._found_summary(getattr(result, "found_chunks", None))
+        missing_chunks, approx_matches = self._reconcile_missing_chunks(
+            result.missing_chunks, target_text
+        )
 
         completeness_pass = completeness_score >= self.COMPLETENESS_THRESHOLD
         order_pass = order_score >= self.ORDER_THRESHOLD
@@ -76,8 +82,13 @@ class Validator:
                 "completeness": {
                     "score": completeness_score,
                     "passed": completeness_pass,
-                    "missing_count": len(result.missing_chunks),
-                    "missing_examples": self._missing_examples(result.missing_chunks),
+                    "missing_count": len(missing_chunks),
+                    "missing_examples": self._missing_examples(missing_chunks),
+                    "missing": self._missing_details(missing_chunks),
+                    "approximate_count": len(approx_matches),
+                    "approximate_examples": self._approximate_examples(approx_matches),
+                    "approximate": approx_matches,
+                    "found": found_summary,
                 },
                 "order": {
                     "score": order_score,
@@ -105,6 +116,61 @@ class Validator:
             text = failure.chunk.text.strip().replace("\n", " ")
             examples.append(text[:160])
         return examples
+
+    def _missing_details(self, missing_chunks: List) -> List[Dict[str, Any]]:
+        details = []
+        for failure in missing_chunks:
+            chunk = failure.chunk
+            text = chunk.text.strip().replace("\n", " ")
+            details.append({
+                "text": text,
+                "snippet": text[:200],
+                "start_index": chunk.start_index,
+                "end_index": chunk.end_index,
+                "length": len(chunk.text),
+                "reason": failure.reason,
+            })
+        return details
+
+    def _approximate_examples(self, approx_matches: List[Dict[str, Any]]) -> List[str]:
+        return [item.get("snippet", "") for item in approx_matches[:3]]
+
+    def _found_summary(self, found_chunks) -> Dict[str, Any]:
+        if not found_chunks:
+            return {"count": 0, "exact": 0, "fuzzy": 0}
+        exact = sum(1 for chunk in found_chunks if chunk.match_type == "exact")
+        fuzzy = sum(1 for chunk in found_chunks if chunk.match_type == "fuzzy")
+        return {"count": len(found_chunks), "exact": exact, "fuzzy": fuzzy}
+
+    def _reconcile_missing_chunks(self, missing_chunks: List, target_text: str) -> tuple[List, List[Dict[str, Any]]]:
+        if not missing_chunks:
+            return [], []
+
+        normalized_target = canonicalize(target_text, comparison=True).lower()
+        word_re = re.compile(r"\w{4,}")
+        approx_matches = []
+        unresolved = []
+
+        for failure in missing_chunks:
+            chunk_text = failure.chunk.text.strip()
+            normalized_chunk = canonicalize(chunk_text, comparison=True)
+            tokens = word_re.findall(normalized_chunk.lower())
+            if not tokens:
+                unresolved.append(failure)
+                continue
+
+            found_tokens = sum(1 for token in tokens if token in normalized_target)
+            coverage = found_tokens / len(tokens)
+            if coverage >= 0.98:
+                approx_matches.append({
+                    "text": chunk_text,
+                    "snippet": chunk_text.replace("\n", " ")[:200],
+                    "coverage": round(coverage, 4),
+                })
+            else:
+                unresolved.append(failure)
+
+        return unresolved, approx_matches
 
     def _format_summary(self, completeness: float, order: float) -> str:
         status = "PASS" if completeness >= self.COMPLETENESS_THRESHOLD and order >= self.ORDER_THRESHOLD else "FAIL"

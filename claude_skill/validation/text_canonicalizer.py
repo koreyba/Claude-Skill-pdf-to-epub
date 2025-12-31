@@ -51,13 +51,14 @@ def remove_hyphenation(text: str) -> str:
     # This joins words like 'inter-\nactive' -> 'interactive'
     return re.sub(r"-\s*\n\s*", "", text)
 
-def canonicalize(text: str, aggressive: bool = False) -> str:
+def canonicalize(text: str, aggressive: bool = False, comparison: bool = False) -> str:
     """
     Performs full canonicalization of the input text.
     
     Args:
         text: Input string.
         aggressive: If True, performs additional heavy cleanup (e.g. common OCR fixes).
+        comparison: If True, normalizes punctuation and hyphenation for cross-source matching.
         
     Returns:
         A normalized version of the text.
@@ -86,5 +87,26 @@ def canonicalize(text: str, aggressive: bool = False) -> str:
         result = "".join(ch for ch in result if unicodedata.category(ch)[0] != "C")
         logger.debug("Aggressive canonicalization applied.")
 
+    # 5. Comparison mode (if enabled)
+    if comparison:
+        result = _normalize_for_comparison(result)
+
+    return result
+
+
+def _normalize_for_comparison(text: str) -> str:
+    if not text:
+        return ""
+    result = text
+    # Remove spaces before punctuation for consistent matching
+    result = re.sub(r"\s+([,.:;!?])", r"\1", result)
+    # Normalize dashes to a simple hyphen
+    result = result.replace("—", "-").replace("–", "-")
+    # Normalize endnote number punctuation (e.g., "1." -> "1")
+    result = re.sub(r"\b(\d{1,3})\.\s", r"\1 ", result)
+    # Remove hyphens used as separators before whitespace (e.g., "first- and")
+    result = re.sub(r"(?<=\w)-\s+", " ", result)
+    # Ignore hyphenation differences in compounds
+    result = re.sub(r"(?<=\w)-(?=\w)", " ", result)
     return result
 

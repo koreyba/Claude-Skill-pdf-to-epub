@@ -56,6 +56,23 @@ def main():
     print(f"   Status: {'PASS' if completeness.get('passed') else 'FAIL'}")
     if completeness.get("missing_count"):
         print(f"   Missing: {completeness['missing_count']} segments")
+        missing = completeness.get("missing", [])
+        if missing:
+            print("   Missing examples:")
+            for i, item in enumerate(missing[:5], 1):
+                snippet = item.get("snippet", "").strip()
+                print(f"     {i}. {snippet}")
+    approx = completeness.get("approximate", [])
+    if approx:
+        print(f"   Approximate matches: {len(approx)} segments")
+        for i, item in enumerate(approx[:5], 1):
+            snippet = item.get("snippet", "").strip()
+            coverage = item.get("coverage")
+            suffix = f" (coverage {coverage:.2%})" if coverage is not None else ""
+            print(f"     {i}. {snippet}{suffix}")
+    found = completeness.get("found")
+    if found:
+        print(f"   Found: {found.get('count', 0)} (exact: {found.get('exact', 0)}, fuzzy: {found.get('fuzzy', 0)})")
 
     print("\n2. Checking reading order...")
     print(f"   Order score: {order.get('score', 0.0):.1f}%")

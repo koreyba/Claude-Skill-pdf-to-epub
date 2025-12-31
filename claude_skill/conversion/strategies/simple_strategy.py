@@ -244,11 +244,59 @@ class SimpleStrategy(BaseStrategy):
         else:
             sorter = YSorter()
         ordered_blocks = sorter.sort_blocks(blocks)
+        ordered_blocks = self._reorder_side_blocks(ordered_blocks)
         
         # Y-sort is deterministic, so confidence is always 1.0
         confidence = 1.0
         
         return ordered_blocks, confidence
+
+    def _reorder_side_blocks(self, blocks: List[TextBlock]) -> List[TextBlock]:
+        """
+        Move narrow side blocks (e.g., margin notes) after main flow for each page.
+        Keeps all content while reducing order disruptions.
+        """
+        if not blocks:
+            return []
+
+        pages = sorted(list(set(b.page for b in blocks)))
+        reordered = []
+
+        for page in pages:
+            page_blocks = [b for b in blocks if b.page == page]
+            if len(page_blocks) < 3:
+                reordered.extend(sorted(page_blocks, key=lambda b: (b.y0, b.x0)))
+                continue
+
+            min_x = min(b.x0 for b in page_blocks)
+            max_x = max(b.x1 for b in page_blocks)
+            page_width = max_x - min_x
+            if page_width <= 0:
+                reordered.extend(sorted(page_blocks, key=lambda b: (b.y0, b.x0)))
+                continue
+
+            wide_blocks = [b for b in page_blocks if (b.x1 - b.x0) >= page_width * 0.4]
+            reference_blocks = wide_blocks if wide_blocks else page_blocks
+
+            main_left = sorted(b.x0 for b in reference_blocks)[len(reference_blocks) // 2]
+            main_right = sorted(b.x1 for b in reference_blocks)[len(reference_blocks) // 2]
+
+            main_blocks = []
+            side_blocks = []
+            for block in page_blocks:
+                width_ratio = (block.x1 - block.x0) / page_width
+                is_narrow = width_ratio < 0.5
+                is_outside = block.x1 < main_left or block.x0 > main_right
+
+                if is_narrow and is_outside:
+                    side_blocks.append(block)
+                else:
+                    main_blocks.append(block)
+
+            reordered.extend(sorted(main_blocks, key=lambda b: (b.y0, b.x0)))
+            reordered.extend(sorted(side_blocks, key=lambda b: (b.y0, b.x0)))
+
+        return reordered
     
     def detect_structure(
         self, 
@@ -477,6 +525,7 @@ class SimpleStrategy(BaseStrategy):
         detector = FootnoteDetector(patterns=footnote_patterns) if endnotes_filename else None
         html_parts = []
         current_paragraph = ""
+        prev_text_block = None
 
         def flush_paragraph():
             nonlocal current_paragraph
@@ -506,15 +555,17 @@ class SimpleStrategy(BaseStrategy):
                 flush_paragraph()
                 level = max(2, min(6, int(payload.role[1:])))
                 html_parts.append(f"<h{level}>{self._escape_html(text)}</h{level}>")
+                prev_text_block = payload.original_block
                 continue
 
             if not current_paragraph:
                 current_paragraph = text
-            elif self._is_continuation(current_paragraph, text):
+            elif self._is_continuation(prev_text_block, payload.original_block, current_paragraph, text):
                 current_paragraph += " " + text
             else:
                 flush_paragraph()
                 current_paragraph = text
+            prev_text_block = payload.original_block
 
         flush_paragraph()
         return "\n".join(html_parts)
@@ -569,7 +620,13 @@ class SimpleStrategy(BaseStrategy):
                 .replace('"', "&quot;")
                 .replace("'", "&#39;"))
 
-    def _is_continuation(self, prev_text: str, curr_text: str) -> bool:
+    def _is_continuation(
+        self,
+        prev_block: TextBlock | None,
+        curr_block: TextBlock | None,
+        prev_text: str,
+        curr_text: str
+    ) -> bool:
         if not prev_text or not curr_text:
             return False
 
@@ -582,7 +639,21 @@ class SimpleStrategy(BaseStrategy):
         if not prev_ends_sentence and curr_starts_lower:
             return True
 
-        return False
+        if not prev_block or not curr_block:
+            return False
+
+        gap = max(0.0, curr_block.y0 - prev_block.y1)
+        font_size = max(prev_block.font_size, curr_block.font_size, 1.0)
+        line_height = font_size * 1.25
+        indent_delta = curr_block.x0 - prev_block.x0
+        indent_threshold = font_size * 1.2
+
+        if gap > line_height * 1.5:
+            return False
+        if indent_delta > indent_threshold * 1.5 and gap >= line_height * 0.6:
+            return False
+
+        return gap <= line_height * 0.75 and abs(indent_delta) <= indent_threshold
 
     def _normalize_level(self, level: int) -> int:
         return max(1, min(3, level))

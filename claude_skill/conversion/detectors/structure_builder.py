@@ -18,6 +18,7 @@ class Chapter:
         # Merge blocks intelligently - join continuation blocks with space
         merged_parts = []
         current_paragraph = ""
+        prev_block = None
 
         for block in self.content_blocks:
             text = block.original_block.text.strip()
@@ -27,13 +28,14 @@ class Chapter:
             if not current_paragraph:
                 # Start new paragraph
                 current_paragraph = text
-            elif self._is_continuation(current_paragraph, text):
+            elif self._is_continuation(prev_block, block.original_block, current_paragraph, text):
                 # Continue current paragraph (join with space)
                 current_paragraph += " " + text
             else:
                 # Start new paragraph
                 merged_parts.append(current_paragraph)
                 current_paragraph = text
+            prev_block = block.original_block
 
         # Don't forget the last paragraph
         if current_paragraph:
@@ -47,17 +49,13 @@ class Chapter:
 
         return "\n\n".join(merged_parts)
 
-    def _is_continuation(self, prev_text: str, curr_text: str) -> bool:
+    def _is_continuation(self, prev_block, curr_block, prev_text: str, curr_text: str) -> bool:
         """Check if curr_text is a continuation of prev_text (same paragraph)."""
         if not prev_text or not curr_text:
             return False
 
-        # If previous doesn't end with sentence-ending punctuation
-        # AND current starts with lowercase - it's a continuation
         prev_ends_sentence = prev_text.rstrip()[-1] in '.!?:;'
         curr_starts_lower = curr_text[0].islower()
-
-        # Also check for mid-word breaks (previous ends with hyphen)
         prev_ends_hyphen = prev_text.rstrip().endswith('-')
 
         if prev_ends_hyphen:
@@ -66,7 +64,21 @@ class Chapter:
         if not prev_ends_sentence and curr_starts_lower:
             return True
 
-        return False
+        if not prev_block or not curr_block:
+            return False
+
+        gap = max(0.0, curr_block.y0 - prev_block.y1)
+        font_size = max(prev_block.font_size, curr_block.font_size, 1.0)
+        line_height = font_size * 1.25
+        indent_delta = curr_block.x0 - prev_block.x0
+        indent_threshold = font_size * 1.2
+
+        if gap > line_height * 1.5:
+            return False
+        if indent_delta > indent_threshold * 1.5 and gap >= line_height * 0.6:
+            return False
+
+        return gap <= line_height * 0.75 and abs(indent_delta) <= indent_threshold
 
 class StructureBuilder:
     """
@@ -77,8 +89,12 @@ class StructureBuilder:
         # 0. Separate endnotes from main content
         main_blocks = []
         endnote_blocks = []
+        endnotes_heading = None
 
         for block in blocks:
+            if self._is_endnotes_heading(block.original_block.text):
+                endnotes_heading = block.original_block.text.strip()
+                continue
             if block.role == "endnote":
                 endnote_blocks.append(block)
             else:
@@ -145,7 +161,7 @@ class StructureBuilder:
         # 2. Add endnotes chapter if we have endnotes
         if endnote_blocks:
             endnotes_chapter = Chapter(
-                title="Endnotes",
+                title=endnotes_heading or "Endnotes",
                 level=1,
                 content_blocks=endnote_blocks,
                 is_endnotes=True  # Mark as endnotes chapter for special rendering
@@ -154,6 +170,14 @@ class StructureBuilder:
             logger.info(f"Created Endnotes chapter with {len(endnote_blocks)} notes")
 
         return root_chapters
+
+    def _is_endnotes_heading(self, text: str) -> bool:
+        stripped = text.strip()
+        if not stripped:
+            return False
+        if not stripped.startswith("ENDNOTES"):
+            return False
+        return len(stripped) <= 80
 
     def _merge_headers(self, blocks: List[SemanticBlock]) -> List[SemanticBlock]:
         if not blocks:

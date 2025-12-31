@@ -166,6 +166,18 @@ class TestSimpleStrategyOrderBlocks:
         assert ordered == [block1, block2]
         assert confidence == 1.0
 
+    def test_order_blocks_moves_side_blocks_after_main(self):
+        """order_blocks() places narrow side blocks after main flow."""
+        strategy = SimpleStrategy()
+
+        main1 = TextBlock(text="Main1", page=1, x0=50, y0=0, x1=450, y1=20, font_name="Arial", font_size=12, flags=0)
+        side = TextBlock(text="Side", page=1, x0=480, y0=10, x1=520, y1=25, font_name="Arial", font_size=10, flags=0)
+        main2 = TextBlock(text="Main2", page=1, x0=50, y0=40, x1=450, y1=60, font_name="Arial", font_size=12, flags=0)
+
+        reordered = strategy._reorder_side_blocks([main1, side, main2])
+
+        assert reordered == [main1, main2, side]
+
 
 class TestSimpleStrategyDetectStructure:
     """Test SimpleStrategy.detect_structure() method."""

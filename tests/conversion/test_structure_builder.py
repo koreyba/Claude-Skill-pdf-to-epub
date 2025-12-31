@@ -194,6 +194,25 @@ class TestStructureBuilderBuildChapters:
         assert "First paragraph" in text
         assert "Second paragraph" in text
 
+    def test_endnotes_heading_used_for_endnotes_title(self):
+        """build_chapters() uses ENDNOTES heading as endnotes title."""
+        blocks = [
+            make_block("Chapter One", "h1"),
+            make_block("Body text.", "body"),
+            make_block("ENDNOTES to Excerpt C", "body"),
+            make_block("1  First endnote text.", "endnote"),
+        ]
+
+        builder = StructureBuilder()
+        chapters = builder.build_chapters(blocks)
+
+        endnotes_chapter = next((ch for ch in chapters if ch.is_endnotes), None)
+        assert endnotes_chapter is not None
+        assert endnotes_chapter.title == "ENDNOTES to Excerpt C"
+
+        main_text = " ".join(ch.get_text() for ch in chapters if not ch.is_endnotes)
+        assert "ENDNOTES to Excerpt C" not in main_text
+
 
 class TestStructureBuilderMergeHeaders:
     """Test _merge_headers() preprocessing."""

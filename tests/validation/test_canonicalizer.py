@@ -54,5 +54,10 @@ class TestTextCanonicalizer(unittest.TestCase):
         self.assertEqual(canonicalize(""), "")
         self.assertEqual(canonicalize(None), "")
 
+    def test_comparison_mode_normalization(self):
+        text = "Excerpt F : Integral Post-Metaphysics and third-person"
+        expected = "Excerpt F: Integral Post Metaphysics and third person"
+        self.assertEqual(canonicalize(text, comparison=True), expected)
+
 if __name__ == "__main__":
     unittest.main()

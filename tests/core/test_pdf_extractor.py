@@ -52,7 +52,7 @@ class TestPDFExtractor(unittest.TestCase):
     def test_empty_page_handling(self, mock_fitz_open, mock_exists):
         mock_exists.return_value = True
         mock_page = MagicMock()
-        mock_page.get_text.return_value = [] # No blocks
+        mock_page.get_text.return_value = {"blocks": []} # No blocks
         
         mock_doc = MagicMock()
         mock_doc.__iter__.return_value = [mock_page]
@@ -62,6 +62,39 @@ class TestPDFExtractor(unittest.TestCase):
         with PDFExtractor(Path("empty.pdf")) as extractor:
             text = extractor.get_full_text()
             self.assertEqual(text, "")
+
+    @patch("pathlib.Path.exists")
+    def test_header_footer_line_detection(self, mock_exists):
+        mock_exists.return_value = True
+        extractor = PDFExtractor(Path("virtual.pdf"))
+        extractor.body_font_size = 11.0
+        page_height = 800.0
+
+        self.assertTrue(
+            extractor._is_header_footer_line(
+                "27 SOME EVERYDAY EXAMPLES", 0, 40, page_height, 11.0
+            )
+        )
+        self.assertTrue(
+            extractor._is_header_footer_line(
+                "94", 760, 790, page_height, 11.0
+            )
+        )
+        self.assertFalse(
+            extractor._is_header_footer_line(
+                "The result, as you can see in figure", 0, 40, page_height, 11.0
+            )
+        )
+        self.assertFalse(
+            extractor._is_header_footer_line(
+                "Excerpt C: The Ways We Are in This Together", 0, 40, page_height, 16.0
+            )
+        )
+        self.assertFalse(
+            extractor._is_header_footer_line(
+                "27 SOME EVERYDAY EXAMPLES", 200, 240, page_height, 11.0
+            )
+        )
 
     def test_integration_with_real_file(self):
         """

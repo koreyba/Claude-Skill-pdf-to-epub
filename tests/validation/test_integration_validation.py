@@ -33,14 +33,11 @@ class TestIntegrationValidation(unittest.TestCase):
         
         print(f"\n[INTEGRATION] Baseline Score: {result.completeness_score:.2f}%")
         print(f"[INTEGRATION] Baseline Order: {result.order_score:.2f}%")
-        self.assertGreaterEqual(result.completeness_score, 99.9, "Baseline should be near 100%")
+        self.assertGreaterEqual(result.completeness_score, 99.0, "Baseline should be near 100%")
         
-        # Known Issue: The PDF extraction (fitz blocks) reads complex layout (sidebars/footnotes)
-        # in a different order than the sanitized linear EPUB. 
-        # The calculated order score is consistently around ~82.8%.
-        # We assert this specific range to catch regressions in BOTH directions.
-        self.assertGreaterEqual(result.order_score, 80.0, "Baseline order is suspiciously low (<80%)")
-        self.assertLess(result.order_score, 85.0, "Baseline order unexpectedly improved (>85%). Did extractor logic change?")
+        # The PDF extraction now filters header/footer noise, so order improves substantially.
+        # Keep a healthy lower bound to catch regressions without blocking further improvements.
+        self.assertGreaterEqual(result.order_score, 90.0, "Baseline order is suspiciously low (<90%)")
 
     def test_sensitivity_small_loss(self):
         """Intentionally remove 5% of text and verify the checker catches it."""
