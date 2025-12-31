@@ -3,9 +3,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from ..core.pdf_extractor import PDFExtractor
-from ..core.epub_extractor import EPUBExtractor
-from ..validation.completeness_checker import CompletenessChecker
+from ..validation.validator import Validator
 
 
 def main():
@@ -42,90 +40,44 @@ def main():
     print(f"Validating {epub_path} against {pdf_path}...")
     print("="*60)
 
-    all_passed = True
-    results = {}
+    print("\nRunning validation...")
+    validator = Validator(pdf_path, epub_path)
+    report = validator.validate(run_epubcheck=args.epubcheck)
 
-    # Extract text from both files
-    print("\nExtracting text...")
-    try:
-        with PDFExtractor(pdf_path) as pdf:
-            source_text = pdf.get_full_text()
-        print(f"   PDF: {len(source_text)} characters extracted")
-
-        with EPUBExtractor(epub_path) as epub:
-            target_text = epub.get_full_text()
-        print(f"   EPUB: {len(target_text)} characters extracted")
-    except Exception as e:
-        print(f"   Error extracting text: {e}")
+    if report["status"] == "error":
+        print(f"Error: {report['summary']}", file=sys.stderr)
         return 1
 
-    # Completeness and order check (OrderChecker is called internally by CompletenessChecker)
-    print("\n1. Checking text completeness and reading order...")
-    try:
-        checker = CompletenessChecker(source_text, target_text)
-        result = checker.check()
+    completeness = report["details"].get("completeness", {})
+    order = report["details"].get("order", {})
 
-        # Completeness score is in percent (0-100)
-        completeness_pct = result.completeness_score
-        is_complete = completeness_pct >= 95.0
+    print("\n1. Checking text completeness...")
+    print(f"   Completeness: {completeness.get('score', 0.0):.1f}%")
+    print(f"   Status: {'PASS' if completeness.get('passed') else 'FAIL'}")
+    if completeness.get("missing_count"):
+        print(f"   Missing: {completeness['missing_count']} segments")
 
-        print(f"   Completeness: {completeness_pct:.1f}%")
-        print(f"   Status: {'PASS' if is_complete else 'FAIL'}")
-
-        results['completeness'] = {
-            'score': completeness_pct,
-            'passed': is_complete
-        }
-
-        if not is_complete:
-            all_passed = False
-            if result.missing_chunks:
-                print(f"   Missing: {len(result.missing_chunks)} segments")
-                results['completeness']['missing_count'] = len(result.missing_chunks)
-    except Exception as e:
-        print(f"   Error: {e}")
-        all_passed = False
-        results['completeness'] = {'error': str(e)}
-
-    # Order check (from the same result)
     print("\n2. Checking reading order...")
-    try:
-        order_score = result.order_score if hasattr(result, 'order_score') else 100.0
-        is_ordered = order_score >= 80.0
+    print(f"   Order score: {order.get('score', 0.0):.1f}%")
+    print(f"   Status: {'PASS' if order.get('passed') else 'FAIL'}")
 
-        print(f"   Order score: {order_score:.1f}%")
-        print(f"   Status: {'PASS' if is_ordered else 'FAIL'}")
-
-        results['order'] = {
-            'score': order_score,
-            'passed': is_ordered
-        }
-
-        if not is_ordered:
-            all_passed = False
-    except Exception as e:
-        print(f"   Error: {e}")
-        all_passed = False
-        results['order'] = {'error': str(e)}
-    
-    # epubcheck (if requested)
     if args.epubcheck:
         print("\n3. Running epubcheck...")
         print("   [WARN] epubcheck integration not yet implemented")
-        results['epubcheck'] = {'skipped': True}
-    
+
     # Save report
     if args.output:
         import json
         output_path = Path(args.output)
-        output_path.write_text(json.dumps(results, indent=2), encoding='utf-8')
+        output_path.write_text(json.dumps(report, indent=2), encoding='utf-8')
         print(f"\nReport saved to: {output_path}")
-    
+
     # Summary
+    all_passed = report["status"] == "pass"
     print("\n" + "="*60)
     print(f"Overall: {'[PASS]' if all_passed else '[FAIL]'}")
     print("="*60)
-    
+
     return 0 if all_passed else 1
 
 

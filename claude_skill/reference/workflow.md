@@ -7,6 +7,21 @@ Complete guide for the 4-phase conversion process.
 ### Goal
 Understand the PDF structure before conversion to generate optimal configuration.
 
+### Automated analysis (recommended)
+Use the built-in analyzer to produce an analysis report and suggested config:
+
+```bash
+python -m claude_skill.scripts.analyze input.pdf --output analysis.json
+```
+
+```python
+from claude_skill.conversion.pdf_analyzer import PDFAnalyzer
+
+analyzer = PDFAnalyzer("input.pdf")
+analysis = analyzer.analyze()
+config = analyzer.generate_config()
+```
+
 ### Steps
 
 1. **Open PDF and get basic info**

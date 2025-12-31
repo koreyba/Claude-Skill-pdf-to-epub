@@ -58,6 +58,8 @@ The PDF-to-EPUB converter uses a layered architecture that clearly separates cod
 | `validation/order_checker.py` | Uses LCS algorithm for order verification. Changing this invalidates historical comparisons. |
 | `core/pdf_extractor.py` | PyMuPDF interface. Changes here affect all downstream processing. |
 
+Note: `validation/validator.py` is an orchestration layer and can be modified without changing validation metrics.
+
 ### Exception Policy
 
 Only modify FROZEN files if:

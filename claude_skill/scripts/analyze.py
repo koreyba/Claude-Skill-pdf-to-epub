@@ -4,7 +4,7 @@ import sys
 import json
 from pathlib import Path
 
-from ..conversion.converter import Converter
+from ..conversion.pdf_analyzer import PDFAnalyzer
 
 
 def main():
@@ -34,72 +34,50 @@ def main():
     print(f"Analyzing {pdf_path}...")
     
     try:
-        converter = Converter(strategy="simple")
-        
-        # Create temp EPUB to get structured content
-        import tempfile
-        with tempfile.NamedTemporaryFile(suffix='.epub', delete=False) as tmp:
-            tmp_path = Path(tmp.name)
-        
-        result = converter.convert(
-            pdf_path=pdf_path,
-            output_path=tmp_path,
-            config_path=config_path
-        )
-        
-        def _has_content(chapter) -> bool:
-            if hasattr(chapter, "content_blocks"):
-                return bool(chapter.content_blocks)
-            if hasattr(chapter, "content"):
-                return bool(chapter.content)
-            if hasattr(chapter, "get_text"):
-                return bool(chapter.get_text().strip())
-            return False
+        analyzer = PDFAnalyzer(pdf_path)
+        analysis = analyzer.analyze()
+        suggested_config = analyzer.generate_config()
 
-        # Build analysis report
-        analysis = {
+        report = {
             "pdf_file": str(pdf_path),
-            "status": result.status,
-            "reading_order_confidence": result.reading_order_confidence,
-            "metadata": {
-                "title": result.metadata.title if result.metadata else None,
-                "author": result.metadata.author if result.metadata else None,
-                "language": result.metadata.language if result.metadata else None,
-            },
-            "chapter_count": len(result.structured_content.chapters) if result.structured_content else 0,
-            "chapters": [
-                {
-                    "title": ch.title,
-                    "level": ch.level,
-                    "has_content": _has_content(ch)
-                }
-                for ch in (result.structured_content.chapters if result.structured_content else [])
-            ],
-            "image_count": len(result.structured_content.images) if result.structured_content else 0,
-            "warnings": result.log.warnings,
-            "errors": result.log.errors,
+            "analysis": analysis,
+            "suggested_config": suggested_config,
         }
-        
-        # Output
-        output_json = json.dumps(analysis, indent=2)
-        
+
+        if config_path:
+            override = json.loads(Path(config_path).read_text(encoding="utf-8"))
+            report["config_override"] = override
+            report["effective_config"] = _deep_merge(suggested_config, override)
+
+        output_json = json.dumps(report, indent=2)
+
         if args.output:
-            Path(args.output).write_text(output_json, encoding='utf-8')
+            Path(args.output).write_text(output_json, encoding="utf-8")
             print(f"Analysis saved to: {args.output}")
         else:
             print("\nAnalysis Result:")
             print(output_json)
-        
-        # Cleanup temp file
-        tmp_path.unlink(missing_ok=True)
-        
-        return 0 if result.status != "failed" else 1
-        
+
+        return 0
+
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc()
         return 1
+
+
+def _deep_merge(base: dict, override: dict) -> dict:
+    if not isinstance(override, dict):
+        return override
+
+    merged = dict(base)
+    for key, value in override.items():
+        if key in merged and isinstance(merged[key], dict) and isinstance(value, dict):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
 
 
 if __name__ == "__main__":
