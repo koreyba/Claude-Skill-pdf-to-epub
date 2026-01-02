@@ -12,16 +12,16 @@ A Claude Code skill for converting PDF books to high-quality EPUB format with au
 
 ## Installation
 
-### For Claude Code CLI
+### As Claude Code Skill
 
-Copy the skill folder to your Claude skills directory:
+The skill is located in the `pdf_to_epub/` folder. Copy it to your Claude skills directory:
 
 ```bash
 # Personal skills (available in all projects)
-cp -r . ~/.claude/skills/pdf-to-epub
+cp -r pdf_to_epub ~/.claude/skills/pdf-to-epub
 
-# Or project-specific (available only in that project)
-cp -r . /path/to/project/.claude/skills/pdf-to-epub
+# Or project-specific
+cp -r pdf_to_epub /path/to/project/.claude/skills/pdf-to-epub
 ```
 
 ### Python Dependencies
@@ -32,17 +32,15 @@ pip install -r requirements.txt
 
 ## Quick Start
 
-Once installed, Claude will automatically use this skill when you ask to convert PDFs to EPUB:
+Once installed, Claude will automatically use this skill when you ask to convert PDFs:
 
 > "Convert my-book.pdf to EPUB format"
 
-Or manually invoke the conversion:
+Or run manually:
 
 ```bash
-# From skill directory
+cd pdf_to_epub
 python -m scripts.convert input.pdf output.epub
-
-# Validate the result
 python -m scripts.validate input.pdf output.epub
 ```
 
@@ -54,8 +52,6 @@ The skill follows a 4-phase process:
 2. **Convert** — Apply configuration and build EPUB
 3. **Validate** — Check text completeness and reading order
 4. **Adapt** — Tune configuration if validation fails
-
-See [reference/workflow.md](reference/workflow.md) for details.
 
 ## Configuration Examples
 
@@ -78,31 +74,34 @@ See [reference/workflow.md](reference/workflow.md) for details.
 }
 ```
 
-More examples in [examples/](examples/).
+More examples in [pdf_to_epub/examples/](pdf_to_epub/examples/).
 
 ## Project Structure
 
 ```
 .
-├── SKILL.md              # Claude skill definition
-├── requirements.txt      # Python dependencies
-├── core/                 # Core algorithms (FROZEN)
-├── conversion/           # Conversion logic
-│   ├── strategies/       # Conversion strategies (ADAPTABLE)
-│   └── detectors/        # Structure detection (ADAPTABLE)
-├── validation/           # Quality checking (FROZEN)
-├── scripts/              # CLI entry points
-├── reference/            # Documentation
-└── examples/             # Example configurations
+├── pdf_to_epub/              # Claude Skill (copy this folder)
+│   ├── SKILL.md              # Skill definition
+│   ├── requirements.txt      # Python dependencies
+│   ├── core/                 # Core algorithms (FROZEN)
+│   ├── conversion/           # Conversion logic
+│   ├── validation/           # Quality checking
+│   ├── scripts/              # CLI entry points
+│   ├── reference/            # Documentation
+│   └── examples/             # Example configurations
+│
+├── tests/                    # Test suite
+├── docs/                     # Development documentation
+└── requirements.txt          # All dependencies (including dev)
 ```
 
 ## Documentation
 
-- [Workflow Guide](reference/workflow.md) — Complete conversion process
-- [Architecture](reference/architecture.md) — Three-layer system design
-- [Configuration](reference/config-tuning.md) — All parameters explained
-- [Troubleshooting](reference/troubleshooting.md) — Common issues and fixes
-- [Code Adaptation](reference/code-adaptation.md) — When and how to modify code
+- [Workflow Guide](pdf_to_epub/reference/workflow.md) — Complete conversion process
+- [Architecture](pdf_to_epub/reference/architecture.md) — Three-layer system design
+- [Configuration](pdf_to_epub/reference/config-tuning.md) — All parameters explained
+- [Troubleshooting](pdf_to_epub/reference/troubleshooting.md) — Common issues and fixes
+- [Code Adaptation](pdf_to_epub/reference/code-adaptation.md) — When and how to modify code
 
 ## Quality Metrics
 
@@ -113,18 +112,26 @@ After conversion, the skill validates:
 | Text completeness | > 98% | 95-98% | < 95% |
 | Reading order | > 90% | 80-90% | < 80% |
 
-## Requirements
+## Development
+
+### Running Tests
+
+```bash
+python -m pytest tests/ -v
+```
+
+### Requirements
 
 - Python 3.10+
-- Dependencies: pymupdf, pdfplumber, lxml, beautifulsoup4, Pillow, ebooklib
+- pymupdf, pdfplumber, lxml, beautifulsoup4, Pillow, ebooklib
 
 ## License
 
-MIT License — see [LICENSE](../LICENSE) for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Contributions are welcome! Please read the architecture documentation before modifying code:
+Contributions welcome! Please note the architecture:
 
 - **FROZEN** files (core/, validation/) — Do not modify
 - **CONFIGURABLE** — Try configuration changes first
