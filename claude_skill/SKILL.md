@@ -15,14 +15,11 @@ Convert PDF documents to high-quality EPUB files with automatic chapter detectio
 ## Quick Start
 
 ```bash
-# Navigate to converter project
-cd c:\Projects\Pdf-to-epub-skill
-
-# Run conversion
-python -m claude_skill.scripts.convert input.pdf output.epub
+# Run conversion (from skill directory)
+python -m scripts.convert input.pdf output.epub
 
 # Validate result
-python -m claude_skill.scripts.validate input.pdf output.epub
+python -m scripts.validate input.pdf output.epub
 ```
 
 ## Workflow Overview
@@ -74,8 +71,8 @@ doc = fitz.open("input.pdf")
 Run the conversion with the generated config:
 
 ```python
-from claude_skill.conversion.converter import Converter
-from claude_skill.conversion.models import ConversionConfig
+from conversion.converter import Converter
+from conversion.models import ConversionConfig
 
 config = ConversionConfig(
     page_ranges=PageRanges(skip=[1, 2], content=(3, -3)),
@@ -97,8 +94,8 @@ if result.reading_order_confidence < 0.7:
 Always validate the conversion result:
 
 ```python
-from claude_skill.validation.completeness_checker import CompletenessChecker
-from claude_skill.validation.order_checker import OrderChecker
+from validation.completeness_checker import CompletenessChecker
+from validation.order_checker import OrderChecker
 
 # Check text completeness
 completeness = CompletenessChecker().check(pdf_text, epub_text)
@@ -207,38 +204,47 @@ See [reference/code-adaptation.md](reference/code-adaptation.md) for guidelines.
 ## Project Structure
 
 ```
-c:\Projects\Pdf-to-epub-skill\
-├── claude_skill/
-│   ├── core/                    # FROZEN: Core algorithms
-│   │   ├── epub_builder.py      # EPUB3 file creation
-│   │   ├── pdf_extractor.py     # PDF text/image extraction
-│   │   ├── text_segmenter.py    # Deterministic chunking
-│   │   └── image_optimizer.py   # Image compression
-│   │
-│   ├── conversion/              # Main conversion logic
-│   │   ├── converter.py         # Orchestrator
-│   │   ├── models.py            # Data classes & configs
-│   │   │
-│   │   ├── strategies/          # ADAPTABLE: Conversion strategies
-│   │   │   ├── base_strategy.py # Template method pattern
-│   │   │   └── simple_strategy.py
-│   │   │
-│   │   └── detectors/           # ADAPTABLE: Detection heuristics
-│   │       ├── structure_classifier.py
-│   │       ├── reading_order/
-│   │       ├── footnote_detector.py
-│   │       └── endnote_formatter.py
-│   │
-│   ├── validation/              # FROZEN: Quality checking
-│   │   ├── completeness_checker.py
-│   │   └── order_checker.py
-│   │
-│   └── scripts/                 # CLI entry points
-│       ├── analyze.py
-│       ├── convert.py
-│       └── validate.py
+<skill-directory>/
+├── SKILL.md                     # This file
+├── requirements.txt             # Python dependencies
+├── core/                        # FROZEN: Core algorithms
+│   ├── epub_builder.py          # EPUB3 file creation
+│   ├── pdf_extractor.py         # PDF text/image extraction
+│   ├── text_segmenter.py        # Deterministic chunking
+│   └── image_optimizer.py       # Image compression
 │
-└── tests/                       # Test fixtures
+├── conversion/                  # Main conversion logic
+│   ├── converter.py             # Orchestrator
+│   ├── models.py                # Data classes & configs
+│   ├── strategies/              # ADAPTABLE: Conversion strategies
+│   │   ├── base_strategy.py     # Template method pattern
+│   │   └── simple_strategy.py
+│   └── detectors/               # ADAPTABLE: Detection heuristics
+│       ├── structure_classifier.py
+│       ├── reading_order/
+│       ├── footnote_detector.py
+│       └── endnote_formatter.py
+│
+├── validation/                  # FROZEN: Quality checking
+│   ├── completeness_checker.py
+│   └── order_checker.py
+│
+├── scripts/                     # CLI entry points
+│   ├── analyze.py
+│   ├── convert.py
+│   └── validate.py
+│
+├── reference/                   # Documentation
+│   ├── workflow.md
+│   ├── architecture.md
+│   ├── troubleshooting.md
+│   ├── config-tuning.md
+│   └── code-adaptation.md
+│
+└── examples/                    # Example configurations
+    ├── fiction-simple.json
+    ├── academic-multicol.json
+    └── magazine-images.json
 ```
 
 ---
@@ -298,18 +304,12 @@ For detailed information, see:
 ## Common Commands
 
 ```bash
-# Full conversion with validation
-python -m claude_skill.scripts.convert input.pdf output.epub && \
-python -m claude_skill.scripts.validate input.pdf output.epub
+# Full conversion with validation (from skill directory)
+python -m scripts.convert input.pdf output.epub && \
+python -m scripts.validate input.pdf output.epub
 
 # Analyze PDF structure
-python -m claude_skill.scripts.analyze input.pdf
-
-# Run tests
-python -m pytest tests/ -v
-
-# Check specific module
-python -m pytest tests/conversion/test_footnote_hyperlinks.py -v
+python -m scripts.analyze input.pdf
 ```
 
 ---

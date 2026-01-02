@@ -11,11 +11,11 @@ Understand the PDF structure before conversion to generate optimal configuration
 Use the built-in analyzer to produce an analysis report and suggested config:
 
 ```bash
-python -m claude_skill.scripts.analyze input.pdf --output analysis.json
+python -m scripts.analyze input.pdf --output analysis.json
 ```
 
 ```python
-from claude_skill.conversion.pdf_analyzer import PDFAnalyzer
+from conversion.pdf_analyzer import PDFAnalyzer
 
 analyzer = PDFAnalyzer("input.pdf")
 analysis = analyzer.analyze()
@@ -92,7 +92,7 @@ print(f"Body font size: {body_size}")
 Based on analysis, generate a config:
 
 ```python
-from claude_skill.conversion.models import (
+from conversion.models import (
     ConversionConfig, PageRanges, ExcludeRegions,
     HeadingConfig, ImageOptimizationConfig
 )
@@ -141,7 +141,7 @@ Apply configuration and build EPUB file.
 
 1. **Initialize converter**
 ```python
-from claude_skill.conversion.converter import Converter
+from conversion.converter import Converter
 
 converter = Converter(strategy="simple")
 ```
@@ -191,8 +191,8 @@ Verify conversion quality meets thresholds.
 
 1. **Extract text from both files**
 ```python
-from claude_skill.core.pdf_extractor import PDFExtractor
-from claude_skill.core.epub_extractor import EPUBExtractor
+from core.pdf_extractor import PDFExtractor
+from core.epub_extractor import EPUBExtractor
 
 pdf_text = PDFExtractor().extract_text(pdf_path)
 epub_text = EPUBExtractor().extract_text(epub_path)
@@ -200,7 +200,7 @@ epub_text = EPUBExtractor().extract_text(epub_path)
 
 2. **Check completeness**
 ```python
-from claude_skill.validation.completeness_checker import CompletenessChecker
+from validation.completeness_checker import CompletenessChecker
 
 checker = CompletenessChecker()
 result = checker.check(pdf_text, epub_text)
@@ -213,8 +213,8 @@ print(f"Loss: {result.loss_percentage:.1f}%")
 
 3. **Check reading order**
 ```python
-from claude_skill.validation.order_checker import OrderChecker
-from claude_skill.core.text_segmenter import TextSegmenter
+from validation.order_checker import OrderChecker
+from core.text_segmenter import TextSegmenter
 
 segmenter = TextSegmenter()
 pdf_chunks = segmenter.segment(pdf_text)
@@ -317,10 +317,10 @@ config.multi_column.threshold = 0.3  # More sensitive
 
 ```python
 from pathlib import Path
-from claude_skill.conversion.converter import Converter
-from claude_skill.conversion.models import *
-from claude_skill.validation.completeness_checker import CompletenessChecker
-from claude_skill.validation.order_checker import OrderChecker
+from conversion.converter import Converter
+from conversion.models import *
+from validation.completeness_checker import CompletenessChecker
+from validation.order_checker import OrderChecker
 
 # Phase 1: Configure
 config = ConversionConfig(

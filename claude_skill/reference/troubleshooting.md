@@ -197,7 +197,7 @@ If images exist in PDF but not in EPUB:
 - Verify extraction is working:
 
 ```python
-from claude_skill.core.pdf_extractor import PDFExtractor
+from core.pdf_extractor import PDFExtractor
 extractor = PDFExtractor()
 _, images, _ = extractor.extract(pdf_path, config)
 print(f"Extracted {len(images)} images")

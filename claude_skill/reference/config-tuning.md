@@ -5,7 +5,7 @@ Complete reference for all configuration parameters.
 ## ConversionConfig Overview
 
 ```python
-from claude_skill.conversion.models import (
+from conversion.models import (
     ConversionConfig,
     PageRanges,
     ExcludeRegions,
@@ -445,7 +445,7 @@ config = ConversionConfig(
 
 ```python
 import json
-from claude_skill.conversion.models import ConversionConfig
+from conversion.models import ConversionConfig
 
 with open("config.json") as f:
     data = json.load(f)

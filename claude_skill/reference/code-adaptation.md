@@ -111,7 +111,7 @@ PATTERNS = {
 3. Test:
 
 ```python
-from claude_skill.conversion.detectors.footnote_detector import FootnoteDetector
+from conversion.detectors.footnote_detector import FootnoteDetector
 
 detector = FootnoteDetector(patterns=['dagger'])
 refs = detector.find_references("This statement†1 is cited.")
@@ -329,8 +329,8 @@ python -m pytest tests/conversion/test_structure_classifier.py -v
 
 3. Test on real PDF:
 ```bash
-python -m claude_skill.scripts.convert input.pdf output.epub
-python -m claude_skill.scripts.validate input.pdf output.epub
+python -m scripts.convert input.pdf output.epub
+python -m scripts.validate input.pdf output.epub
 ```
 
 4. Verify validation passes:
