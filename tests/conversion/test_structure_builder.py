@@ -2,8 +2,8 @@
 Tests for StructureBuilder (hierarchical chapter tree construction).
 """
 import pytest
-from claude_skill.conversion.detectors.structure_builder import StructureBuilder, Chapter
-from claude_skill.conversion.detectors.models import SemanticBlock, TextBlock
+from pdf_to_epub.conversion.detectors.structure_builder import StructureBuilder, Chapter
+from pdf_to_epub.conversion.detectors.models import SemanticBlock, TextBlock
 
 
 def make_block(text: str, role: str = "body") -> SemanticBlock:

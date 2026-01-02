@@ -4,8 +4,8 @@ import pytest
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from claude_skill.conversion.strategies.base_strategy import BaseStrategy
-from claude_skill.conversion.models import (
+from pdf_to_epub.conversion.strategies.base_strategy import BaseStrategy
+from pdf_to_epub.conversion.models import (
     ConversionConfig,
     StructuredContent,
     BookMetadata,

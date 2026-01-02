@@ -1,5 +1,5 @@
 import unittest
-from claude_skill.validation.completeness_checker import CompletenessChecker
+from pdf_to_epub.validation.completeness_checker import CompletenessChecker
 
 class TestCompletenessChecker(unittest.TestCase):
     

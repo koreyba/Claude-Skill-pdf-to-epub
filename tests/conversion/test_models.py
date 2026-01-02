@@ -4,7 +4,7 @@ import pytest
 from datetime import datetime
 from pathlib import Path
 
-from claude_skill.conversion.models import (
+from pdf_to_epub.conversion.models import (
     PageRanges,
     ExcludeRegions,
     MultiColumnConfig,

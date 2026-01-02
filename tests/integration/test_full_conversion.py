@@ -5,11 +5,11 @@ import zipfile
 from pathlib import Path
 from lxml import etree
 
-from claude_skill.conversion.converter import Converter, DEFAULT_CONFIG
-from claude_skill.conversion.models import ConversionConfig, BookMetadata
-from claude_skill.validation.completeness_checker import CompletenessChecker
-from claude_skill.core.epub_extractor import EPUBExtractor
-from claude_skill.core.pdf_extractor import PDFExtractor
+from pdf_to_epub.conversion.converter import Converter, DEFAULT_CONFIG
+from pdf_to_epub.conversion.models import ConversionConfig, BookMetadata
+from pdf_to_epub.validation.completeness_checker import CompletenessChecker
+from pdf_to_epub.core.epub_extractor import EPUBExtractor
+from pdf_to_epub.core.pdf_extractor import PDFExtractor
 
 
 class TestFullConversion:

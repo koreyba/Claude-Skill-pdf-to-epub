@@ -31,7 +31,7 @@ description: Define requirements for verifying text completeness between PDF and
 ## Success Criteria
 **How will we know when we're done?**
 
-- `claude_skill/validation/completeness_checker.py` is implemented.
+- `pdf_to_epub/validation/completeness_checker.py` is implemented.
 - The checker ignores "noise" (chunks shorter than a configurable threshold, e.g., 20 chars) to avoid false alerts on page numbers.
 - The checker successfully finds 100% of significant chunks in an identical text.
 - The checker identifies specific missing text and provides its context from PDF.

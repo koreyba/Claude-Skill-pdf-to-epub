@@ -1,5 +1,5 @@
 import unittest
-from claude_skill.validation.text_canonicalizer import canonicalize, resolve_ligatures, remove_hyphenation
+from pdf_to_epub.validation.text_canonicalizer import canonicalize, resolve_ligatures, remove_hyphenation
 
 class TestTextCanonicalizer(unittest.TestCase):
     

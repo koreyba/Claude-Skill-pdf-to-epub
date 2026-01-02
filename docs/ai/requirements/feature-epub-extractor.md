@@ -31,7 +31,7 @@ description: Define requirements for extracting clean text from EPUB files for v
 ## Success Criteria
 **How will we know when we're done?**
 
-- `claude_skill/core/epub_extractor.py` is implemented using `ebooklib` and `BeautifulSoup4`.
+- `pdf_to_epub/core/epub_extractor.py` is implemented using `ebooklib` and `BeautifulSoup4`.
 - Text is extracted in the correct reading order.
 - No HTML tags remain in the output.
 - All extracted text is canonicalized.

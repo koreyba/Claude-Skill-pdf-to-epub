@@ -5,7 +5,7 @@
   "scripts": {
     "test": ".venv/Scripts/python -m pytest",
     "test:v": ".venv/Scripts/python -m pytest -v",
-    "test:cov": ".venv/Scripts/python -m pytest --cov=claude_skill.conversion --cov-report=term-missing",
+    "test:cov": ".venv/Scripts/python -m pytest --cov=pdf_to_epub.conversion --cov-report=term-missing",
     "test:conversion": ".venv/Scripts/python -m pytest tests/conversion/ -v",
     "test:validation": ".venv/Scripts/python -m pytest tests/validation/ -v",
     "test:core": ".venv/Scripts/python -m pytest tests/core/ -v",

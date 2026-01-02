@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from claude_skill.conversion.converter import Converter
+from pdf_to_epub.conversion.converter import Converter
 
 
 def _normalize(text: str) -> str:

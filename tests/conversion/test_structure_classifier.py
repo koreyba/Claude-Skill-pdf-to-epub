@@ -2,8 +2,8 @@
 Tests for StructureClassifier (semantic block classification).
 """
 import pytest
-from claude_skill.conversion.detectors.structure_classifier import StructureClassifier
-from claude_skill.conversion.detectors.models import TextBlock, SemanticBlock
+from pdf_to_epub.conversion.detectors.structure_classifier import StructureClassifier
+from pdf_to_epub.conversion.detectors.models import TextBlock, SemanticBlock
 
 
 class TestStructureClassifierClassify:

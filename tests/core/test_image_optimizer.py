@@ -4,8 +4,8 @@ import pytest
 from io import BytesIO
 from PIL import Image
 
-from claude_skill.core.image_optimizer import ImageOptimizer, ImageOptimizationConfig
-from claude_skill.conversion.models import ImageResource
+from pdf_to_epub.core.image_optimizer import ImageOptimizer, ImageOptimizationConfig
+from pdf_to_epub.conversion.models import ImageResource
 
 
 class TestImageOptimizer:

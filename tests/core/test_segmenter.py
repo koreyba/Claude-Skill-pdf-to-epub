@@ -1,5 +1,5 @@
 import unittest
-from claude_skill.core.text_segmenter import segment_text, normalize_whitespace, Chunk
+from pdf_to_epub.core.text_segmenter import segment_text, normalize_whitespace, Chunk
 
 class TestTextSegmenter(unittest.TestCase):
     

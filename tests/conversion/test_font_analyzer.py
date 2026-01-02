@@ -2,8 +2,8 @@
 Tests for FontAnalyzer (font style detection and classification).
 """
 import pytest
-from claude_skill.conversion.detectors.font_analyzer import FontAnalyzer
-from claude_skill.conversion.detectors.models import TextBlock
+from pdf_to_epub.conversion.detectors.font_analyzer import FontAnalyzer
+from pdf_to_epub.conversion.detectors.models import TextBlock
 
 
 class TestFontAnalyzerAnalyze:

@@ -31,7 +31,7 @@ description: Define the requirements for the deterministic text segmentation mod
 ## Success Criteria
 **How will we know when we're done?**
 
-- `claude_skill/core/text_segmenter.py` is implemented.
+- `pdf_to_epub/core/text_segmenter.py` is implemented.
 - The segmentation logic handles strings shorter than the chunk size correctly.
 - Overlap logic correctly recalculates the start position of subsequent chunks.
 - 100% test coverage with 0 bugs in boundary conditions.

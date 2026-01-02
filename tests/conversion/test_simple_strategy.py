@@ -5,8 +5,8 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch, Mock
 import fitz
 
-from claude_skill.conversion.strategies.simple_strategy import SimpleStrategy
-from claude_skill.conversion.models import (
+from pdf_to_epub.conversion.strategies.simple_strategy import SimpleStrategy
+from pdf_to_epub.conversion.models import (
     ConversionConfig,
     BookMetadata,
     ImageResource,
@@ -18,14 +18,14 @@ from claude_skill.conversion.models import (
     HeadingConfig,
     FootnoteConfig,
 )
-from claude_skill.conversion.detectors.models import TextBlock
+from pdf_to_epub.conversion.detectors.models import TextBlock
 
 
 class TestSimpleStrategyExtract:
     """Test SimpleStrategy.extract() method."""
     
-    @patch('claude_skill.conversion.strategies.simple_strategy.fitz.open')
-    @patch('claude_skill.conversion.strategies.simple_strategy.PDFExtractor')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.fitz.open')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.PDFExtractor')
     def test_extract_calls_pdf_extractor(self, mock_extractor_class, mock_fitz_open, tmp_path):
         """extract() uses PDFExtractor with context manager."""
         # Setup mocks
@@ -59,8 +59,8 @@ class TestSimpleStrategyExtract:
         mock_extractor_class.assert_called_once_with(pdf_path)
         mock_extractor.get_structural_blocks.assert_called_once()
     
-    @patch('claude_skill.conversion.strategies.simple_strategy.fitz.open')
-    @patch('claude_skill.conversion.strategies.simple_strategy.PDFExtractor')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.fitz.open')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.PDFExtractor')
     def test_extract_returns_metadata_from_pdf(self, mock_extractor_class, mock_fitz_open, tmp_path):
         """extract() extracts metadata from PDF info dict."""
         mock_extractor = MagicMock()
@@ -99,8 +99,8 @@ class TestSimpleStrategyExtract:
         assert metadata.description == 'Test Description'
         assert metadata.publisher == 'Test Publisher'
     
-    @patch('claude_skill.conversion.strategies.simple_strategy.fitz.open')
-    @patch('claude_skill.conversion.strategies.simple_strategy.PDFExtractor')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.fitz.open')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.PDFExtractor')
     def test_extract_falls_back_to_config_metadata(self, mock_extractor_class, mock_fitz_open, tmp_path):
         """extract() uses config metadata when PDF has none."""
         mock_extractor = MagicMock()
@@ -137,7 +137,7 @@ class TestSimpleStrategyExtract:
 class TestSimpleStrategyOrderBlocks:
     """Test SimpleStrategy.order_blocks() method."""
     
-    @patch('claude_skill.conversion.strategies.simple_strategy.YSorter')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.YSorter')
     def test_order_blocks_uses_y_sorter(self, mock_y_sorter_class):
         """order_blocks() uses YSorter for reading order."""
         mock_sorter = MagicMock()
@@ -182,9 +182,9 @@ class TestSimpleStrategyOrderBlocks:
 class TestSimpleStrategyDetectStructure:
     """Test SimpleStrategy.detect_structure() method."""
     
-    @patch('claude_skill.conversion.strategies.simple_strategy.FontAnalyzer')
-    @patch('claude_skill.conversion.strategies.simple_strategy.StructureClassifier')
-    @patch('claude_skill.conversion.strategies.simple_strategy.StructureBuilder')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.FontAnalyzer')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.StructureClassifier')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.StructureBuilder')
     def test_detect_structure_pipeline(self, mock_builder_class, mock_classifier_class, mock_analyzer_class):
         """detect_structure() calls FontAnalyzer → Classifier → Builder pipeline."""
         # Setup mocks
@@ -230,9 +230,9 @@ class TestSimpleStrategyDetectStructure:
         assert result.metadata == metadata
         assert result.images == images
     
-    @patch('claude_skill.conversion.strategies.simple_strategy.FontAnalyzer')
-    @patch('claude_skill.conversion.strategies.simple_strategy.StructureClassifier')
-    @patch('claude_skill.conversion.strategies.simple_strategy.StructureBuilder')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.FontAnalyzer')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.StructureClassifier')
+    @patch('pdf_to_epub.conversion.strategies.simple_strategy.StructureBuilder')
     def test_handles_empty_chapters(self, mock_builder_class, mock_classifier_class, mock_analyzer_class):
         """detect_structure() creates default chapter if none detected."""
         # Setup mocks to return empty chapters

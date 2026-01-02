@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from claude_skill.core.utils import (
+from pdf_to_epub.core.utils import (
     get_logger, get_project_root, ensure_dir, 
     VERSION, DEFAULT_ENCODING, DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP
 )

@@ -9,8 +9,8 @@ description: Technical implementation notes for completeness verification.
 ## Code Structure
 **How is the code organized?**
 
-- `claude_skill/validation/completeness_checker.py`
-- `claude_skill/validation/models.py` (New file for results structure)
+- `pdf_to_epub/validation/completeness_checker.py`
+- `pdf_to_epub/validation/models.py` (New file for results structure)
 
 ## Implementation Notes
 **Key technical details to remember:**

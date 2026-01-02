@@ -6,8 +6,8 @@ import tempfile
 from pathlib import Path
 from lxml import etree
 
-from claude_skill.core.epub_builder import EPUBBuilder
-from claude_skill.conversion.models import (
+from pdf_to_epub.core.epub_builder import EPUBBuilder
+from pdf_to_epub.conversion.models import (
     StructuredContent,
     BookMetadata,
     Chapter,

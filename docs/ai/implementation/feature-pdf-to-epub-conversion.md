@@ -13,7 +13,7 @@ feature: pdf-to-epub-conversion
 **Use Case:** Dynamically select strategy by name
 
 ```python
-# claude_skill/conversion/strategies/__init__.py
+# pdf_to_epub/conversion/strategies/__init__.py
 from .base_strategy import BaseStrategy
 from .simple_strategy import SimpleStrategy
 
@@ -32,7 +32,7 @@ def get_strategy(name: str) -> BaseStrategy:
 **Use Case:** Provide sensible defaults for conversion config
 
 ```python
-# claude_skill/conversion/models.py
+# pdf_to_epub/conversion/models.py
 DEFAULT_CONFIG = ConversionConfig(
     page_ranges=PageRanges(skip=[1, 2], content=(3, -3), endnotes=(-2, -1)),
     exclude_regions=ExcludeRegions(top=0.05, bottom=0.05, left=0.0, right=0.0),
@@ -76,7 +76,7 @@ def validate_config(config: ConversionConfig) -> None:
 **Use Case:** Capture errors with step context for debugging
 
 ```python
-# claude_skill/conversion/converter.py
+# pdf_to_epub/conversion/converter.py
 def convert(self, pdf_path: Path, output_path: Path, config: ConversionConfig = None) -> ConversionResult:
     log = ConversionLog(timestamp=datetime.now(), strategy_used=self.strategy_name, config=config)
     
@@ -104,7 +104,7 @@ def convert(self, pdf_path: Path, output_path: Path, config: ConversionConfig = 
 **Usage in SimpleStrategy:**
 ```python
 def extract(self, pdf_path: Path, config: ConversionConfig) -> Tuple[List[TextBlock], List[ImageResource], BookMetadata]:
-    from claude_skill.core.pdf_extractor import PDFExtractor
+    from pdf_to_epub.core.pdf_extractor import PDFExtractor
     import fitz  # PyMuPDF
     
     extractor = PDFExtractor()
@@ -159,10 +159,10 @@ def extract(self, pdf_path: Path, config: ConversionConfig) -> Tuple[List[TextBl
 ```python
 def order_blocks(self, blocks: List[TextBlock], config: ConversionConfig) -> Tuple[List[TextBlock], float]:
     if config.reading_order_strategy == "y_sort":
-        from claude_skill.detectors.reading_order.y_sorter import YSorter
+        from pdf_to_epub.detectors.reading_order.y_sorter import YSorter
         sorter = YSorter()
     elif config.reading_order_strategy == "xy_cut":
-        from claude_skill.detectors.reading_order.xy_cut_sorter import XYCutSorter
+        from pdf_to_epub.detectors.reading_order.xy_cut_sorter import XYCutSorter
         sorter = XYCutSorter()
     
     ordered, confidence = sorter.sort(blocks)
@@ -178,9 +178,9 @@ def order_blocks(self, blocks: List[TextBlock], config: ConversionConfig) -> Tup
 **Usage:**
 ```python
 def detect_structure(self, blocks: List[TextBlock], config: ConversionConfig) -> StructuredContent:
-    from claude_skill.detectors.font_analyzer import FontAnalyzer
-    from claude_skill.detectors.structure_classifier import StructureClassifier
-    from claude_skill.detectors.structure_builder import StructureBuilder
+    from pdf_to_epub.detectors.font_analyzer import FontAnalyzer
+    from pdf_to_epub.detectors.structure_classifier import StructureClassifier
+    from pdf_to_epub.detectors.structure_builder import StructureBuilder
     
     # Step 1: Analyze fonts to identify headings
     font_analyzer = FontAnalyzer()
@@ -491,25 +491,25 @@ content = "\n".join(parts)
 ### CLI Usage Examples
 ```bash
 # Analyze PDF structure
-python -m claude_skill.scripts.analyze --pdf book.pdf --output analysis.json
+python -m pdf_to_epub.scripts.analyze --pdf book.pdf --output analysis.json
 
 # Convert with defaults
-python -m claude_skill.scripts.convert --pdf book.pdf --output book.epub
+python -m pdf_to_epub.scripts.convert --pdf book.pdf --output book.epub
 
 # Convert with custom config
-python -m claude_skill.scripts.convert --pdf book.pdf --output book.epub --config my_config.json
+python -m pdf_to_epub.scripts.convert --pdf book.pdf --output book.epub --config my_config.json
 
 # Validate conversion
-python -m claude_skill.scripts.validate --pdf book.pdf --epub book.epub
+python -m pdf_to_epub.scripts.validate --pdf book.pdf --epub book.epub
 ```
 
 ### Environment Variables
 ```bash
 # Optional: Set default strategy
-export CLAUDE_SKILL_STRATEGY=simple
+export pdf_to_epub_STRATEGY=simple
 
 # Optional: Enable debug logging
-export CLAUDE_SKILL_DEBUG=1
+export pdf_to_epub_DEBUG=1
 ```
 
 ## Known Limitations

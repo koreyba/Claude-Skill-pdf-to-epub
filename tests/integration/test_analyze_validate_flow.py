@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from claude_skill.conversion.converter import Converter
-from claude_skill.conversion.pdf_analyzer import PDFAnalyzer
-from claude_skill.validation.validator import Validator
+from pdf_to_epub.conversion.converter import Converter
+from pdf_to_epub.conversion.pdf_analyzer import PDFAnalyzer
+from pdf_to_epub.validation.validator import Validator
 
 
 @pytest.fixture

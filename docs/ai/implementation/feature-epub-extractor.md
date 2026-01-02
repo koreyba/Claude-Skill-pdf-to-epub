@@ -9,7 +9,7 @@ description: Technical implementation notes for EPUB extraction.
 ## Code Structure
 **How is the code organized?**
 
-- `claude_skill/core/epub_extractor.py`
+- `pdf_to_epub/core/epub_extractor.py`
 
 ## Implementation Notes
 **Key technical details to remember:**

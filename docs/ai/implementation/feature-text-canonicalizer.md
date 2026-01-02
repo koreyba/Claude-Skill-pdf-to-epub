@@ -9,7 +9,7 @@ description: Technical implementation notes for text normalization.
 ## Code Structure
 **How is the code organized?**
 
-- `claude_skill/validation/text_canonicalizer.py`
+- `pdf_to_epub/validation/text_canonicalizer.py`
 
 ## Implementation Notes
 **Key technical details to remember:**

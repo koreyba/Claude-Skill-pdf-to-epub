@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from lxml import etree
 
-from claude_skill.conversion.converter import Converter, DEFAULT_CONFIG
+from pdf_to_epub.conversion.converter import Converter, DEFAULT_CONFIG
 
 
 class TestImageEmbedding:
@@ -196,9 +196,9 @@ class TestValidateCLI:
         assert result.status in ("success", "warning")
 
         # Now validate using the checker directly (same logic as CLI)
-        from claude_skill.core.pdf_extractor import PDFExtractor
-        from claude_skill.core.epub_extractor import EPUBExtractor
-        from claude_skill.validation.completeness_checker import CompletenessChecker
+        from pdf_to_epub.core.pdf_extractor import PDFExtractor
+        from pdf_to_epub.core.epub_extractor import EPUBExtractor
+        from pdf_to_epub.validation.completeness_checker import CompletenessChecker
 
         with PDFExtractor(excerpt_b_path) as pdf:
             source_text = pdf.get_full_text()
@@ -220,7 +220,7 @@ class TestValidateCLI:
 
     def test_validate_requires_both_files(self, tmp_path):
         """Test that validation requires both PDF and EPUB files to exist."""
-        from claude_skill.core.pdf_extractor import PDFExtractor
+        from pdf_to_epub.core.pdf_extractor import PDFExtractor
 
         # Non-existent file should raise
         with pytest.raises(FileNotFoundError):
@@ -275,9 +275,9 @@ class TestExcerptCConversion:
         assert result.status in ("success", "warning")
 
         # Validate completeness
-        from claude_skill.core.pdf_extractor import PDFExtractor
-        from claude_skill.core.epub_extractor import EPUBExtractor
-        from claude_skill.validation.completeness_checker import CompletenessChecker
+        from pdf_to_epub.core.pdf_extractor import PDFExtractor
+        from pdf_to_epub.core.epub_extractor import EPUBExtractor
+        from pdf_to_epub.validation.completeness_checker import CompletenessChecker
 
         with PDFExtractor(excerpt_c_path) as pdf:
             source_text = pdf.get_full_text()

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 from pathlib import Path
-from claude_skill.core.pdf_extractor import PDFExtractor
+from pdf_to_epub.core.pdf_extractor import PDFExtractor
 
 class TestPDFExtractor(unittest.TestCase):
     

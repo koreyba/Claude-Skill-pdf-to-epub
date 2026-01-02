@@ -1,5 +1,5 @@
-from claude_skill.validation.completeness_checker import CompletenessChecker
-from claude_skill.core.text_segmenter import segment_text, normalize_whitespace
+from pdf_to_epub.validation.completeness_checker import CompletenessChecker
+from pdf_to_epub.core.text_segmenter import segment_text, normalize_whitespace
 
 def debug():
     source = "ALPHA. BETA. GAMMA. DELTA. EPSILON. ZETA. ETA. THETA. IOTA. KAPPA."

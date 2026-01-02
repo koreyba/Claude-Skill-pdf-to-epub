@@ -32,7 +32,7 @@ description: Task breakdown for implementing the text segmenter.
 ## Dependencies
 **What needs to happen in what order?**
 
-- Depends on `claude_skill/core/utils.py` (Completed).
+- Depends on `pdf_to_epub/core/utils.py` (Completed).
 
 ## Timeline & Estimates
 **When will things be done?**

@@ -70,7 +70,7 @@ def simple_pdf():
 @pytest.fixture
 def default_config():
     """Load default conversion config."""
-    from claude_skill.conversion.models import load_config
+    from pdf_to_epub.conversion.models import load_config
     config_path = Path(__file__).parent / 'fixtures' / 'configs' / 'default_config.json'
     return load_config(config_path)
 ```
@@ -83,7 +83,7 @@ def default_config():
 ```python
 def test_base_strategy_is_abstract():
     """BaseStrategy cannot be instantiated directly."""
-    from claude_skill.conversion.strategies.base_strategy import BaseStrategy
+    from pdf_to_epub.conversion.strategies.base_strategy import BaseStrategy
     
     with pytest.raises(TypeError, match="Can't instantiate abstract class"):
         BaseStrategy()
@@ -93,7 +93,7 @@ def test_base_strategy_is_abstract():
 ```python
 def test_template_method_calls_hooks():
     """convert() calls extract, order, detect in sequence."""
-    from claude_skill.conversion.strategies.base_strategy import BaseStrategy
+    from pdf_to_epub.conversion.strategies.base_strategy import BaseStrategy
     
     class MockStrategy(BaseStrategy):
         def __init__(self):
@@ -109,7 +109,7 @@ def test_template_method_calls_hooks():
         
         def detect_structure(self, blocks, config):
             self.calls.append('detect')
-            from claude_skill.conversion.models import StructuredContent
+            from pdf_to_epub.conversion.models import StructuredContent
             return StructuredContent(chapters=[], metadata=None, reading_order_confidence=1.0)
     
     strategy = MockStrategy()
@@ -124,9 +124,9 @@ def test_template_method_calls_hooks():
 ```python
 def test_extract_calls_pdf_extractor(mocker, simple_pdf, default_config):
     """extract() uses PDFExtractor with correct parameters."""
-    from claude_skill.conversion.strategies.simple_strategy import SimpleStrategy
+    from pdf_to_epub.conversion.strategies.simple_strategy import SimpleStrategy
     
-    mock_extractor = mocker.patch('claude_skill.conversion.strategies.simple_strategy.PDFExtractor')
+    mock_extractor = mocker.patch('pdf_to_epub.conversion.strategies.simple_strategy.PDFExtractor')
     mock_extractor.return_value.extract_text_blocks.return_value = []
     
     strategy = SimpleStrategy()
@@ -141,7 +141,7 @@ def test_extract_calls_pdf_extractor(mocker, simple_pdf, default_config):
 ```python
 def test_extract_metadata_from_pdf(simple_pdf, default_config):
     """extract() reads title and author from PDF info dict."""
-    from claude_skill.conversion.strategies.simple_strategy import SimpleStrategy
+    from pdf_to_epub.conversion.strategies.simple_strategy import SimpleStrategy
     
     strategy = SimpleStrategy()
     blocks, images, metadata = strategy.extract(simple_pdf, default_config)
@@ -156,7 +156,7 @@ def test_extract_metadata_from_pdf(simple_pdf, default_config):
 ```python
 def test_extract_images_from_pdf(simple_pdf, default_config):
     """extract() extracts images with metadata."""
-    from claude_skill.conversion.strategies.simple_strategy import SimpleStrategy
+    from pdf_to_epub.conversion.strategies.simple_strategy import SimpleStrategy
     
     strategy = SimpleStrategy()
     blocks, images, metadata = strategy.extract(simple_pdf, default_config)
@@ -174,8 +174,8 @@ def test_extract_images_from_pdf(simple_pdf, default_config):
 ```python
 def test_order_blocks_uses_y_sorter(mocker, default_config):
     """order_blocks() uses YSorter for single-column."""
-    from claude_skill.conversion.strategies.simple_strategy import SimpleStrategy
-    from claude_skill.core.models import TextBlock
+    from pdf_to_epub.conversion.strategies.simple_strategy import SimpleStrategy
+    from pdf_to_epub.core.models import TextBlock
     
     blocks = [
         TextBlock(text="B", bbox=(0, 100, 100, 120)),
@@ -194,11 +194,11 @@ def test_order_blocks_uses_y_sorter(mocker, default_config):
 ```python
 def test_detect_structure_pipeline(mocker, default_config):
     """detect_structure() calls FontAnalyzer → Classifier → Builder."""
-    from claude_skill.conversion.strategies.simple_strategy import SimpleStrategy
+    from pdf_to_epub.conversion.strategies.simple_strategy import SimpleStrategy
     
-    mock_analyzer = mocker.patch('claude_skill.conversion.strategies.simple_strategy.FontAnalyzer')
-    mock_classifier = mocker.patch('claude_skill.conversion.strategies.simple_strategy.StructureClassifier')
-    mock_builder = mocker.patch('claude_skill.conversion.strategies.simple_strategy.StructureBuilder')
+    mock_analyzer = mocker.patch('pdf_to_epub.conversion.strategies.simple_strategy.FontAnalyzer')
+    mock_classifier = mocker.patch('pdf_to_epub.conversion.strategies.simple_strategy.StructureClassifier')
+    mock_builder = mocker.patch('pdf_to_epub.conversion.strategies.simple_strategy.StructureBuilder')
     
     # Mock return values
     mock_analyzer.return_value.analyze_fonts.return_value = None
@@ -219,7 +219,7 @@ def test_detect_structure_pipeline(mocker, default_config):
 ```python
 def test_epub_directory_structure(temp_output_dir):
     """EPUBBuilder creates correct directory structure."""
-    from claude_skill.core.epub_builder import EPUBBuilder
+    from pdf_to_epub.core.epub_builder import EPUBBuilder
     from tests.fixtures.content_factory import create_test_content
     
     builder = EPUBBuilder()
@@ -243,7 +243,7 @@ def test_epub_directory_structure(temp_output_dir):
 ```python
 def test_mimetype_format(temp_output_dir):
     """mimetype is first file and stored uncompressed."""
-    from claude_skill.core.epub_builder import EPUBBuilder
+    from pdf_to_epub.core.epub_builder import EPUBBuilder
     from tests.fixtures.content_factory import create_test_content
     
     builder = EPUBBuilder()
@@ -266,7 +266,7 @@ def test_mimetype_format(temp_output_dir):
 ```python
 def test_chapter_xhtml_validity(temp_output_dir):
     """Chapter XHTML files are well-formed."""
-    from claude_skill.core.epub_builder import EPUBBuilder
+    from pdf_to_epub.core.epub_builder import EPUBBuilder
     from tests.fixtures.content_factory import create_test_content
     from lxml import etree
     
@@ -291,8 +291,8 @@ def test_chapter_xhtml_validity(temp_output_dir):
 ```python
 def test_html_entity_escaping(temp_output_dir):
     """Special characters are escaped in XHTML."""
-    from claude_skill.core.epub_builder import EPUBBuilder
-    from claude_skill.conversion.models import StructuredContent, Chapter, BookMetadata
+    from pdf_to_epub.core.epub_builder import EPUBBuilder
+    from pdf_to_epub.conversion.models import StructuredContent, Chapter, BookMetadata
     
     content = StructuredContent(
         chapters=[Chapter(
@@ -322,8 +322,8 @@ def test_html_entity_escaping(temp_output_dir):
 ```python
 def test_images_in_epub(temp_output_dir):
     """EPUBBuilder saves images and references them in XHTML."""
-    from claude_skill.core.epub_builder import EPUBBuilder
-    from claude_skill.conversion.models import StructuredContent, Chapter, BookMetadata, ImageResource
+    from pdf_to_epub.core.epub_builder import EPUBBuilder
+    from pdf_to_epub.conversion.models import StructuredContent, Chapter, BookMetadata, ImageResource
     
     # Create fake image
     fake_image_data = b'\x89PNG\r\n\x1a\n'  # PNG header
@@ -362,9 +362,9 @@ def test_images_in_epub(temp_output_dir):
 ```python
 def test_metadata_in_content_opf(temp_output_dir):
     """EPUBBuilder includes metadata in content.opf."""
-    from claude_skill.core.epub_builder import EPUBBuilder
+    from pdf_to_epub.core.epub_builder import EPUBBuilder
     from tests.fixtures.content_factory import create_test_content
-    from claude_skill.conversion.models import BookMetadata
+    from pdf_to_epub.conversion.models import BookMetadata
     
     content = create_test_content()
     content.metadata = BookMetadata(
@@ -397,7 +397,7 @@ def test_metadata_in_content_opf(temp_output_dir):
 def test_load_config_from_file(tmp_path):
     """Converter loads and validates config from JSON."""
     import json
-    from claude_skill.conversion.converter import Converter
+    from pdf_to_epub.conversion.converter import Converter
     
     config_data = {
         "metadata": {"title": "Custom Title", "author": "Author", "language": "en"}
@@ -419,7 +419,7 @@ def test_load_config_from_file(tmp_path):
 ```python
 def test_unknown_strategy_error():
     """Converter raises error for unknown strategy."""
-    from claude_skill.conversion.converter import Converter
+    from pdf_to_epub.conversion.converter import Converter
     
     with pytest.raises(ValueError, match="Unknown strategy"):
         Converter(strategy="nonexistent")
@@ -429,11 +429,11 @@ def test_unknown_strategy_error():
 ```python
 def test_error_returns_failed_result(mocker):
     """Converter returns ConversionResult with status=failed on error."""
-    from claude_skill.conversion.converter import Converter
+    from pdf_to_epub.conversion.converter import Converter
     
     # Mock strategy to raise error
     mocker.patch(
-        'claude_skill.conversion.strategies.simple_strategy.SimpleStrategy.convert',
+        'pdf_to_epub.conversion.strategies.simple_strategy.SimpleStrategy.convert',
         side_effect=Exception("Test error")
     )
     
@@ -448,11 +448,11 @@ def test_error_returns_failed_result(mocker):
 ```python
 def test_conversion_log_includes_steps(mocker, simple_pdf, temp_output_dir):
     """ConversionLog includes all completed steps."""
-    from claude_skill.conversion.converter import Converter
+    from pdf_to_epub.conversion.converter import Converter
     
     # Mock successful conversion
-    mocker.patch('claude_skill.conversion.strategies.simple_strategy.SimpleStrategy.convert')
-    mocker.patch('claude_skill.core.epub_builder.EPUBBuilder.build')
+    mocker.patch('pdf_to_epub.conversion.strategies.simple_strategy.SimpleStrategy.convert')
+    mocker.patch('pdf_to_epub.core.epub_builder.EPUBBuilder.build')
     
     converter = Converter(strategy="simple")
     result = converter.convert(simple_pdf, temp_output_dir / 'test.epub')
@@ -466,8 +466,8 @@ def test_conversion_log_includes_steps(mocker, simple_pdf, temp_output_dir):
 ```python
 def test_config_validation_fail_fast():
     """Invalid config raises ValueError immediately."""
-    from claude_skill.conversion.models import ConversionConfig, ExcludeRegions, BookMetadata
-    from claude_skill.conversion.converter import Converter
+    from pdf_to_epub.conversion.models import ConversionConfig, ExcludeRegions, BookMetadata
+    from pdf_to_epub.conversion.converter import Converter
     
     # Invalid exclude_regions (>1.0)
     bad_config = ConversionConfig(
@@ -483,8 +483,8 @@ def test_config_validation_fail_fast():
 ```python
 def test_invalid_reading_order_strategy():
     """Invalid reading_order_strategy raises ValueError."""
-    from claude_skill.conversion.models import ConversionConfig, BookMetadata
-    from claude_skill.conversion.converter import Converter
+    from pdf_to_epub.conversion.models import ConversionConfig, BookMetadata
+    from pdf_to_epub.conversion.converter import Converter
     
     bad_config = ConversionConfig(
         reading_order_strategy="invalid_strategy",
@@ -499,8 +499,8 @@ def test_invalid_reading_order_strategy():
 ```python
 def test_invalid_language_code():
     """Invalid language code raises ValueError."""
-    from claude_skill.conversion.models import ConversionConfig, BookMetadata
-    from claude_skill.conversion.converter import Converter
+    from pdf_to_epub.conversion.models import ConversionConfig, BookMetadata
+    from pdf_to_epub.conversion.converter import Converter
     
     bad_config = ConversionConfig(
         metadata=BookMetadata(title="Test", author="Test", language="english")  # Should be "en"
@@ -518,7 +518,7 @@ def test_invalid_language_code():
 ```python
 def test_convert_simple_pdf_to_epub(simple_pdf, temp_output_dir, default_config):
     """Full conversion of simple PDF to valid EPUB."""
-    from claude_skill.conversion.converter import Converter
+    from pdf_to_epub.conversion.converter import Converter
     
     converter = Converter(strategy="simple")
     result = converter.convert(
@@ -536,9 +536,9 @@ def test_convert_simple_pdf_to_epub(simple_pdf, temp_output_dir, default_config)
 ```python
 def test_converted_epub_passes_validation(simple_pdf, temp_output_dir, default_config):
     """Converted EPUB passes completeness and order validation."""
-    from claude_skill.conversion.converter import Converter
-    from claude_skill.validation.completeness_checker import CompletenessChecker
-    from claude_skill.validation.order_checker import OrderChecker
+    from pdf_to_epub.conversion.converter import Converter
+    from pdf_to_epub.validation.completeness_checker import CompletenessChecker
+    from pdf_to_epub.validation.order_checker import OrderChecker
     
     # Convert
     converter = Converter()
@@ -560,8 +560,8 @@ def test_converted_epub_passes_validation(simple_pdf, temp_output_dir, default_c
 ```python
 def test_config_override(simple_pdf, temp_output_dir):
     """Config parameters are applied during conversion."""
-    from claude_skill.conversion.converter import Converter
-    from claude_skill.conversion.models import ConversionConfig, BookMetadata
+    from pdf_to_epub.conversion.converter import Converter
+    from pdf_to_epub.conversion.models import ConversionConfig, BookMetadata
     
     config = ConversionConfig(
         metadata=BookMetadata(title="Override Title", author="Test Author", language="fr")
@@ -586,7 +586,7 @@ def test_config_override(simple_pdf, temp_output_dir):
 def test_convert_cli(simple_pdf, temp_output_dir, monkeypatch):
     """convert.py CLI creates EPUB file."""
     import sys
-    from claude_skill.scripts import convert
+    from pdf_to_epub.scripts import convert
     
     output_path = temp_output_dir / 'output.epub'
     monkeypatch.setattr(sys, 'argv', [
@@ -605,7 +605,7 @@ def test_convert_cli(simple_pdf, temp_output_dir, monkeypatch):
 def test_validate_cli(simple_pdf, temp_output_dir, monkeypatch, capsys):
     """validate.py CLI runs validation checks."""
     import sys
-    from claude_skill.scripts import convert, validate
+    from pdf_to_epub.scripts import convert, validate
     
     # First convert
     epub_path = temp_output_dir / 'test.epub'
@@ -633,7 +633,7 @@ def test_validate_cli(simple_pdf, temp_output_dir, monkeypatch, capsys):
 ```python
 def test_encrypted_pdf_error():
     """Encrypted PDF raises clear error."""
-    from claude_skill.conversion.converter import Converter
+    from pdf_to_epub.conversion.converter import Converter
     
     encrypted_pdf = Path('tests/fixtures/pdfs/encrypted.pdf')
     converter = Converter()
@@ -647,11 +647,11 @@ def test_encrypted_pdf_error():
 ```python
 def test_image_only_pdf_error(mocker):
     """PDF with no text raises error."""
-    from claude_skill.conversion.converter import Converter
+    from pdf_to_epub.conversion.converter import Converter
     
     # Mock extractor to return empty list
     mocker.patch(
-        'claude_skill.core.pdf_extractor.PDFExtractor.extract_text_blocks',
+        'pdf_to_epub.core.pdf_extractor.PDFExtractor.extract_text_blocks',
         return_value=[]
     )
     
@@ -666,7 +666,7 @@ def test_image_only_pdf_error(mocker):
 ```python
 def test_invalid_config_json(tmp_path):
     """Invalid JSON config raises error."""
-    from claude_skill.conversion.models import load_config
+    from pdf_to_epub.conversion.models import load_config
     
     config_path = tmp_path / 'bad.json'
     config_path.write_text("{ invalid json }")
@@ -697,7 +697,7 @@ def test_invalid_config_json(tmp_path):
 
 ### Run All Tests
 ```bash
-pytest tests/ -v --cov=claude_skill.conversion --cov=claude_skill.core.epub_builder
+pytest tests/ -v --cov=pdf_to_epub.conversion --cov=pdf_to_epub.core.epub_builder
 ```
 
 ### Run Specific Suite
@@ -707,7 +707,7 @@ pytest tests/conversion/test_simple_strategy.py -v
 
 ### Coverage Report
 ```bash
-pytest --cov=claude_skill.conversion --cov-report=html
+pytest --cov=pdf_to_epub.conversion --cov-report=html
 open htmlcov/index.html
 ```
 

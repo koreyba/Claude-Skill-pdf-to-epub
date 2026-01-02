@@ -1,9 +1,9 @@
 """Tests for footnote detection and hyperlink generation."""
 
 import pytest
-from claude_skill.conversion.detectors.footnote_detector import FootnoteDetector, FootnoteRef
-from claude_skill.conversion.detectors.endnote_formatter import EndnoteFormatter
-from claude_skill.conversion.detectors.models import TextBlock, SemanticBlock
+from pdf_to_epub.conversion.detectors.footnote_detector import FootnoteDetector, FootnoteRef
+from pdf_to_epub.conversion.detectors.endnote_formatter import EndnoteFormatter
+from pdf_to_epub.conversion.detectors.models import TextBlock, SemanticBlock
 
 
 class TestFootnoteDetector:

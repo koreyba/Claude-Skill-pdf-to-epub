@@ -32,7 +32,7 @@ description: Define requirements for text normalization to ensure consistent com
 ## Success Criteria
 **How will we know when we're done?**
 
-- `claude_skill/validation/text_canonicalizer.py` is implemented.
+- `pdf_to_epub/validation/text_canonicalizer.py` is implemented.
 - Ligatures are correctly expanded.
 - End-of-line hyphens are removed.
 - 100% test coverage including complex Unicode edge cases.

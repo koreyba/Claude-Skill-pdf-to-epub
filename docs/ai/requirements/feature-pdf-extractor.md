@@ -31,7 +31,7 @@ description: Define requirements for high-quality text extraction from PDF files
 ## Success Criteria
 **How will we know when we're done?**
 
-- `claude_skill/core/pdf_extractor.py` is implemented using `PyMuPDF` (fitz).
+- `pdf_to_epub/core/pdf_extractor.py` is implemented using `PyMuPDF` (fitz).
 - Successfully extracts text from test PDF files.
 - Text is normalized and cleaned automatically.
 - Errors (missing file, encrypted PDF without password) are handled gracefully.

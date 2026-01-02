@@ -6,7 +6,7 @@ description: Implementation notes and technical debt tracking for structure anal
 # Implementation Notes
 
 ## Current Architecture
-- Will reside in `claude_skill/analysis/` or `claude_skill/conversion/structure/`.
+- Will reside in `pdf_to_epub/analysis/` or `pdf_to_epub/conversion/structure/`.
 - Entry point: `StructureAnalyzer.analyze(pages: List[Page])`.
 
 ## Decisions Log

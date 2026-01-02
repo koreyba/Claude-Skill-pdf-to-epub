@@ -9,7 +9,7 @@ Replace the naive font-size-based heading detector with a robust **probabilistic
 
 ## Proposed Changes
 
-### 1. [MODIFY] `claude_skill/analysis/detectors/structure_classifier.py`
+### 1. [MODIFY] `pdf_to_epub/analysis/detectors/structure_classifier.py`
 
 Refactor the `classify` method to use a **Scoring Engine** instead of a static map lookup.
 
@@ -31,12 +31,12 @@ The classifier will iterate through sorted blocks and assign a "Heading Score" (
 - Score > **50**: Low-level Heading (H3/H2)
 - Score > **75**: Distinct Heading (H1)
 
-### 2. [MODIFY] `claude_skill/analysis/models.py`
+### 2. [MODIFY] `pdf_to_epub/analysis/models.py`
 Add fields to `SemanticBlock` to store debug info:
 - `score`: float (The calculated probability)
 - `debug_signals`: List[str] (Which heuristics triggered, e.g. ["Bold", "No-Dot"])
 
-### 3. [NEW] `claude_skill/analysis/utils/geometry.py` (Optional)
+### 3. [NEW] `pdf_to_epub/analysis/utils/geometry.py` (Optional)
 Utility to calculate vertical distances between blocks reliably.
 
 ## Verification Plan

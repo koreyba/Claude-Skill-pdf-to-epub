@@ -9,7 +9,7 @@ description: Technical implementation notes for text segmentation.
 ## Code Structure
 **How is the code organized?**
 
-- `claude_skill/core/text_segmenter.py`
+- `pdf_to_epub/core/text_segmenter.py`
 
 ## Implementation Notes
 **Key technical details to remember:**

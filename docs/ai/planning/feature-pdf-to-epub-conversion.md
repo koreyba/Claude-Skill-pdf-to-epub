@@ -26,7 +26,7 @@ This plan covers Phase 5 of the Product Vision: implementing the conversion pipe
 ### Phase 1: Foundation (2-3 hours)
 
 #### Task 1.1: Implement BaseStrategy
-**File:** `claude_skill/conversion/strategies/base_strategy.py`
+**File:** `pdf_to_epub/conversion/strategies/base_strategy.py`
 **Description:** Create abstract base class defining strategy interface
 **Details:**
 - Define template method `convert(pdf_path, config) -> StructuredContent`
@@ -42,7 +42,7 @@ This plan covers Phase 5 of the Product Vision: implementing the conversion pipe
 **Status:** ✅ Completed - Dec 30, 2025
 
 #### Task 1.2: Create StructuredContent data models
-**File:** `claude_skill/conversion/models.py` (new)
+**File:** `pdf_to_epub/conversion/models.py` (new)
 **Description:** Define data classes for structured content representation
 **Details:**
 - `StructuredContent` (chapters, metadata, confidence)
@@ -61,7 +61,7 @@ This plan covers Phase 5 of the Product Vision: implementing the conversion pipe
 ### Phase 2: Simple Strategy (4-5 hours)
 
 #### Task 2.1: Implement SimpleStrategy.extract()
-**File:** `claude_skill/conversion/strategies/simple_strategy.py` (new)
+**File:** `pdf_to_epub/conversion/strategies/simple_strategy.py` (new)
 **Description:** Extract text blocks, images, and metadata from PDF
 **Details:**
 - Call `PDFExtractor` with config parameters
@@ -116,7 +116,7 @@ This plan covers Phase 5 of the Product Vision: implementing the conversion pipe
 ### Phase 3: EPUB Builder (5-6 hours)
 
 #### Task 3.1: Implement EPUBBuilder.build() - Core Structure
-**File:** `claude_skill/core/epub_builder.py`
+**File:** `pdf_to_epub/core/epub_builder.py`
 **Description:** Create EPUB3 directory structure and package with metadata
 **Details:**
 - Create temp directory with EPUB structure
@@ -175,7 +175,7 @@ This plan covers Phase 5 of the Product Vision: implementing the conversion pipe
 ### Phase 4: Converter Orchestrator (3-4 hours)
 
 #### Task 4.1: Implement Converter.convert() - Core Logic
-**File:** `claude_skill/conversion/converter.py`
+**File:** `pdf_to_epub/conversion/converter.py`
 **Description:** Orchestrate conversion workflow
 **Details:**
 - Load config from JSON or use defaults
@@ -209,7 +209,7 @@ This plan covers Phase 5 of the Product Vision: implementing the conversion pipe
 **Status:** ✅ Completed - Dec 30, 2025
 
 #### Task 4.3: Implement Config Loading and Validation
-**File:** `claude_skill/conversion/converter.py`
+**File:** `pdf_to_epub/conversion/converter.py`
 **Description:** Load and validate conversion config (fail-fast)
 **Details:**
 - Load from JSON file if provided
@@ -230,7 +230,7 @@ This plan covers Phase 5 of the Product Vision: implementing the conversion pipe
 ### Phase 5: CLI Integration (2-3 hours)
 
 #### Task 5.1: Implement analyze.py CLI
-**File:** `claude_skill/scripts/analyze.py`
+**File:** `pdf_to_epub/scripts/analyze.py`
 **Description:** CLI to analyze PDF structure without converting
 **Details:**
 - Parse arguments: `--pdf`, `--config`, `--output`
@@ -238,14 +238,14 @@ This plan covers Phase 5 of the Product Vision: implementing the conversion pipe
 - Output structured JSON report
 
 **Acceptance:**
-- [x] `python -m claude_skill.scripts.analyze --pdf book.pdf` works
+- [x] `python -m pdf_to_epub.scripts.analyze --pdf book.pdf` works
 - [x] Output includes chapter titles, block count, confidence
 - [x] Handles errors gracefully
 
 **Status:** ✅ Completed - Dec 30, 2025
 
 #### Task 5.2: Implement convert.py CLI
-**File:** `claude_skill/scripts/convert.py`
+**File:** `pdf_to_epub/scripts/convert.py`
 **Description:** CLI to convert PDF to EPUB
 **Details:**
 - Parse arguments: `--pdf`, `--output`, `--config`, `--strategy`
@@ -253,14 +253,14 @@ This plan covers Phase 5 of the Product Vision: implementing the conversion pipe
 - Print progress and result
 
 **Acceptance:**
-- [x] `python -m claude_skill.scripts.convert --pdf book.pdf --output book.epub` works
+- [x] `python -m pdf_to_epub.scripts.convert --pdf book.pdf --output book.epub` works
 - [x] Shows progress messages (extracting, ordering, detecting, building)
 - [x] Prints conversion log on completion
 
 **Status:** ✅ Completed - Dec 30, 2025
 
 #### Task 5.3: Implement validate.py CLI
-**File:** `claude_skill/scripts/validate.py`
+**File:** `pdf_to_epub/scripts/validate.py`
 **Description:** CLI to validate EPUB against PDF
 **Details:**
 - Parse arguments: `--pdf`, `--epub`, `--config`

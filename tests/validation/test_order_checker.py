@@ -1,8 +1,8 @@
 import unittest
-from claude_skill.validation.lis import calculate_lis_length
-from claude_skill.validation.order_checker import OrderChecker
-from claude_skill.validation.models import FoundChunk
-from claude_skill.core.text_segmenter import Chunk
+from pdf_to_epub.validation.lis import calculate_lis_length
+from pdf_to_epub.validation.order_checker import OrderChecker
+from pdf_to_epub.validation.models import FoundChunk
+from pdf_to_epub.core.text_segmenter import Chunk
 
 class TestLIS(unittest.TestCase):
     def test_empty(self):

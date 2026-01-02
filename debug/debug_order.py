@@ -1,8 +1,8 @@
 from pathlib import Path
-from claude_skill.core.pdf_extractor import PDFExtractor
-from claude_skill.core.epub_extractor import EPUBExtractor
-from claude_skill.validation.completeness_checker import CompletenessChecker
-from claude_skill.validation.lis import calculate_lis_length
+from pdf_to_epub.core.pdf_extractor import PDFExtractor
+from pdf_to_epub.core.epub_extractor import EPUBExtractor
+from pdf_to_epub.validation.completeness_checker import CompletenessChecker
+from pdf_to_epub.validation.lis import calculate_lis_length
 
 def debug_order():
     project_root = Path("c:/Projects/Pdf-to-epub-skill")

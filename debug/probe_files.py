@@ -1,6 +1,6 @@
 from pathlib import Path
-from claude_skill.core.pdf_extractor import PDFExtractor
-from claude_skill.core.epub_extractor import EPUBExtractor
+from pdf_to_epub.core.pdf_extractor import PDFExtractor
+from pdf_to_epub.core.epub_extractor import EPUBExtractor
 
 def probe():
     project_root = Path("c:/Projects/Pdf-to-epub-skill")

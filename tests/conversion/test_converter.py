@@ -6,8 +6,8 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch, mock_open
 from datetime import datetime
 
-from claude_skill.conversion.converter import Converter, DEFAULT_CONFIG, STRATEGY_REGISTRY
-from claude_skill.conversion.models import (
+from pdf_to_epub.conversion.converter import Converter, DEFAULT_CONFIG, STRATEGY_REGISTRY
+from pdf_to_epub.conversion.models import (
     ConversionConfig,
     ConversionResult,
     StructuredContent,
