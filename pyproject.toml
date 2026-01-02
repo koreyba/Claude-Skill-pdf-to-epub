@@ -2,3 +2,4 @@
 pythonpath = ["."]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+addopts = ["-p", "no:cacheprovider"]
