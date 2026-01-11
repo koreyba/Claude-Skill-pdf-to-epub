@@ -3,8 +3,8 @@ import argparse
 import sys
 from pathlib import Path
 
-from ..conversion.converter import Converter
-from ..conversion.report import ConversionReporter
+from conversion.converter import Converter
+from conversion.report import ConversionReporter
 
 
 def main():

@@ -4,7 +4,7 @@ import sys
 import json
 from pathlib import Path
 
-from ..conversion.pdf_analyzer import PDFAnalyzer
+from conversion.pdf_analyzer import PDFAnalyzer
 
 
 def main():

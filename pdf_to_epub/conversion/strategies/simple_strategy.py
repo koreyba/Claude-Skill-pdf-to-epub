@@ -8,22 +8,22 @@ import re
 import fitz  # PyMuPDF
 
 from .base_strategy import BaseStrategy
-from ..models import (
+from conversion.models import (
     StructuredContent,
     ImageResource,
     BookMetadata,
     Chapter,
     ImageOptimizationConfig,
 )
-from ...core.pdf_extractor import PDFExtractor
-from ..detectors.models import TextBlock
-from ..detectors.reading_order.y_sorter import YSorter
-from ..detectors.reading_order.xy_cut_sorter import XYCutSorter
-from ..detectors.font_analyzer import FontAnalyzer
-from ..detectors.structure_classifier import StructureClassifier
-from ..detectors.structure_builder import StructureBuilder
-from ..detectors.footnote_detector import FootnoteDetector
-from ..detectors.endnote_formatter import EndnoteFormatter
+from core.pdf_extractor import PDFExtractor
+from conversion.detectors.models import TextBlock
+from conversion.detectors.reading_order.y_sorter import YSorter
+from conversion.detectors.reading_order.xy_cut_sorter import XYCutSorter
+from conversion.detectors.font_analyzer import FontAnalyzer
+from conversion.detectors.structure_classifier import StructureClassifier
+from conversion.detectors.structure_builder import StructureBuilder
+from conversion.detectors.footnote_detector import FootnoteDetector
+from conversion.detectors.endnote_formatter import EndnoteFormatter
 
 
 class SimpleStrategy(BaseStrategy):
@@ -73,7 +73,7 @@ class SimpleStrategy(BaseStrategy):
         Returns:
             List of ImageResource objects
         """
-        images = []
+        images: List[ImageResource] = []
         doc = fitz.open(str(pdf_path))
 
         try:
@@ -174,7 +174,7 @@ class SimpleStrategy(BaseStrategy):
         Returns:
             List of optimized ImageResource objects
         """
-        from ...core.image_optimizer import (
+        from core.image_optimizer import (
             ImageOptimizer,
             ImageOptimizationConfig as OptConfig
         )
@@ -322,7 +322,7 @@ class SimpleStrategy(BaseStrategy):
         """
         # Step 1: Analyze fonts to identify heading fonts
         font_analyzer = FontAnalyzer()
-        font_profile = font_analyzer.analyze(blocks)
+        font_analyzer.analyze(blocks)  # Prepares font analysis for classifier
         
         # Step 2: Classify each block as heading or paragraph
         classifier = StructureClassifier()
@@ -363,7 +363,7 @@ class SimpleStrategy(BaseStrategy):
         config
     ) -> List[Chapter]:
         image_by_index = self._index_images(images)
-        chapter_index_map = {}
+        chapter_index_map: Dict[int, int] = {}
         for idx, chapter in enumerate(chapters, start=1):
             self._map_chapter_indices(chapter, idx, chapter_index_map)
 
@@ -417,7 +417,7 @@ class SimpleStrategy(BaseStrategy):
             self._map_chapter_indices(sub, top_index, mapping)
 
     def _assign_images_to_chapters(self, chapters, images, chapter_index_map: Dict[int, int]) -> Dict[int, List[ImageResource]]:
-        chapter_blocks = []
+        chapter_blocks: List[tuple] = []
         self._collect_chapter_blocks(chapters, chapter_blocks)
 
         images_by_chapter = {}

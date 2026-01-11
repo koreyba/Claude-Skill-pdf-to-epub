@@ -3,7 +3,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from ..validation.validator import Validator
+from validation.validator import Validator
 
 
 def main():

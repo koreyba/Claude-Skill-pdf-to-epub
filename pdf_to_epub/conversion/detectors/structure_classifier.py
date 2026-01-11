@@ -19,7 +19,7 @@ class StructureClassifier:
     def __init__(self):
         self.font_analyzer = FontAnalyzer()
         
-    def classify(self, blocks: List[TextBlock], config_overrides: Dict = None) -> List[SemanticBlock]:
+    def classify(self, blocks: List[TextBlock], config_overrides: Dict | None = None) -> List[SemanticBlock]:
         """
         Enrich blocks with semantic roles.
         """
@@ -48,7 +48,7 @@ class StructureClassifier:
             prev_block = blocks[i-1] if i > 0 else None
             next_block = blocks[i+1] if i < len(blocks) - 1 else None
             
-            score, signals = self._calculate_heading_score(block, prev_block, next_block, body_size, body_flags)
+            score, signals = self._calculate_heading_score(block, prev_block or block, next_block or block, body_size, body_flags)
             size_diff = block.font_size - body_size
             is_bold = (block.flags & 16) != 0
             
@@ -145,8 +145,8 @@ class StructureClassifier:
             
         # 6. Spacing: Top vs Bottom
         # Only relevant if blocks are on the same page
-        top_margin = 0
-        bottom_margin = 0
+        top_margin: float = 0.0
+        bottom_margin: float = 0.0
         
         if is_same_page_prev:
             top_margin = block.y0 - prev.y1
@@ -156,7 +156,7 @@ class StructureClassifier:
             
         # Significant Top Gap? (e.g. > 1.5x bottom gap, or just absolute large gap)
         # We assume standard line height is approx body_size * 1.2
-        line_height = body_size * 1.2
+        line_height: float = body_size * 1.2
         
         if top_margin > line_height * 1.5 and not looks_like_continuation:
              score += 10

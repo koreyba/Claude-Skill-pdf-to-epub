@@ -2,13 +2,13 @@
 
 import re
 from pathlib import Path
-from dataclasses import dataclass, field
-from typing import Optional, List
+from dataclasses import dataclass
+from typing import List
 
-from .models import ConversionResult, StructuredContent
-from ..core.pdf_extractor import PDFExtractor
-from ..core.epub_extractor import EPUBExtractor
-from ..validation.completeness_checker import CompletenessChecker
+from .models import ConversionResult
+from core.pdf_extractor import PDFExtractor
+from core.epub_extractor import EPUBExtractor
+from validation.completeness_checker import CompletenessChecker
 
 
 @dataclass

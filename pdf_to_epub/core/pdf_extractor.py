@@ -10,7 +10,7 @@ from collections import Counter
 from typing import Iterator, List, Dict, Any, Optional
 
 from .utils import get_logger
-from ..validation.text_canonicalizer import canonicalize
+from validation.text_canonicalizer import canonicalize
 
 logger = get_logger(__name__)
 
@@ -131,9 +131,10 @@ class PDFExtractor:
                     continue
                     
                 # Remove any noise patterns found WITHIN the line
+                import re
                 cleaned_line = line_text
                 for pattern in self.noise_patterns:
-                    cleaned_line = pattern.sub("", cleaned_line)
+                    cleaned_line = re.sub(pattern, "", cleaned_line)
                 
                 final_line = cleaned_line.strip()
                 if final_line:
@@ -167,12 +168,12 @@ class PDFExtractor:
     def page_count(self) -> int:
         return len(self.doc) if self.doc else 0
 
-    def get_structural_blocks(self) -> List['TextBlock']:
+    def get_structural_blocks(self):
         """
         Extracts blocks with detailed font information for structure detectors.
         Uses 'dict' output from PyMuPDF.
         """
-        from ..conversion.detectors.models import TextBlock
+        from conversion.detectors.models import TextBlock
         
         if not self.doc:
             raise RuntimeError("Document is not open.")

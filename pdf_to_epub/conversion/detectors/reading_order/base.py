@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from ..models import TextBlock
+from conversion.detectors.models import TextBlock
 
 class BlockSorter(ABC):
     @abstractmethod

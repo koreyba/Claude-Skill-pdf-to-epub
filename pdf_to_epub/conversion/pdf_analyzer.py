@@ -9,7 +9,7 @@ import fitz
 
 from .converter import DEFAULT_CONFIG
 from .models import ConversionConfig, MultiColumnConfig
-from ..core.utils import get_logger
+from core.utils import get_logger
 
 logger = get_logger(__name__)
 
@@ -53,7 +53,7 @@ class PDFAnalyzer:
             sample_pages = self._sample_pages(page_count, max_samples=5)
             x_cluster_counts: List[int] = []
             text_lengths: List[int] = []
-            font_sizes = Counter()
+            font_sizes: Counter = Counter()
 
             for page_index in sample_pages:
                 page = doc.load_page(page_index)

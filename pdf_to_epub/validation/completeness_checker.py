@@ -6,9 +6,9 @@ is present in the target (EPUB).
 """
 
 import re
-from typing import List, Optional
-from ..core.text_segmenter import segment_text, normalize_whitespace
-from ..core.utils import get_logger, DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP
+from typing import List
+from core.text_segmenter import segment_text, normalize_whitespace
+from core.utils import get_logger, DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP
 from .models import ValidationFailure, ValidationResult, FoundChunk
 from .order_checker import OrderChecker
 
@@ -47,15 +47,13 @@ class CompletenessChecker:
         if total_chunks == 0:
             return ValidationResult(is_valid=True, completeness_score=100.0, missing_chunks=[], total_chunks=0)
 
-        missing_failures = []
-        missing_failures = []
+        missing_failures: List = []
         found_chunks_list = []
         found_count = 0
         
         # 2. Optimized search loop
         # We start searching from the beginning of the target text
         current_pos = 0
-        target_len = len(self.target_text)
 
         for chunk in chunks:
             # We try to find the chunk starting from current_pos (optimized window)

@@ -1,7 +1,7 @@
 # ADAPTABLE: Column detection thresholds can be tuned
 # See ~/.claude/skills/pdf-to-epub/reference/code-adaptation.md
 from typing import List, Tuple
-from ..models import TextBlock
+from conversion.detectors.models import TextBlock
 from .base import BlockSorter
 
 class XYCutSorter(BlockSorter):
@@ -92,7 +92,7 @@ class XYCutSorter(BlockSorter):
             
             max_y_so_far = max(max_y_so_far, b.y1)
             
-        return best_split
+        return best_split if best_split is not None else 0.0
 
     def _find_gap_x(self, blocks: List[TextBlock]) -> float:
         """Finds the largest X-gap (columns)."""
@@ -111,4 +111,4 @@ class XYCutSorter(BlockSorter):
             
             max_x_so_far = max(max_x_so_far, b.x1)
             
-        return best_split
+        return best_split if best_split is not None else 0.0

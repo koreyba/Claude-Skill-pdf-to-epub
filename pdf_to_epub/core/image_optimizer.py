@@ -6,7 +6,7 @@ from typing import Optional, Tuple, List
 
 from PIL import Image
 
-from ..conversion.models import ImageResource
+from conversion.models import ImageResource
 from .utils import get_logger
 
 logger = get_logger(__name__)
@@ -59,17 +59,17 @@ class ImageOptimizer:
             original_size = len(image_resource.data)
 
             # Step 1: Resize if needed
-            img, new_width, new_height = self._resize_image(img)
+            img_resized, new_width, new_height = self._resize_image(img)
 
             # Step 2: Determine output format
-            output_format = self._determine_output_format(img, original_format)
+            output_format = self._determine_output_format(img_resized, original_format)
 
             # Step 3: Convert color mode if needed
             if output_format == 'jpeg':
-                img = self._convert_for_jpeg(img)
+                img_resized = self._convert_for_jpeg(img_resized)
 
             # Step 4: Save optimized image
-            optimized_data = self._save_image(img, output_format)
+            optimized_data = self._save_image(img_resized, output_format)
 
             # Step 5: Create new ImageResource
             new_filename = self._update_filename(image_resource.filename, output_format)
@@ -162,7 +162,10 @@ class ImageOptimizer:
             alpha = img.split()[3]
             # Check if any pixels are actually transparent
             extrema = alpha.getextrema()
-            return extrema[0] < 255  # Min alpha < 255 means transparency
+            if extrema and isinstance(extrema, tuple) and len(extrema) == 2:
+                min_alpha: int = extrema[0]  # type: ignore[assignment]
+                return min_alpha < 255  # Min alpha < 255 means transparency
+            return False
 
         return True  # Assume transparency for other modes
 

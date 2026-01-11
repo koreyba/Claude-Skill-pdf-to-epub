@@ -68,8 +68,8 @@ class BookMetadata:
         isbn: ISBN identifier (optional)
         description: Book description (optional)
     """
-    title: str
-    author: str
+    title: Optional[str]
+    author: Optional[str]
     language: str
     publisher: Optional[str] = None
     isbn: Optional[str] = None
@@ -344,10 +344,10 @@ class ConversionConfig:
         if self.reading_order_strategy not in ['y_sort', 'xy_cut', 'column_based']:
             raise ValueError(f"Invalid reading_order_strategy: {self.reading_order_strategy}")
         # Validate exclude_regions are 0.0-1.0
-        for field in ['top', 'bottom', 'left', 'right']:
-            val = getattr(self.exclude_regions, field)
+        for field_name in ['top', 'bottom', 'left', 'right']:
+            val = getattr(self.exclude_regions, field_name)
             if not 0.0 <= val <= 1.0:
-                raise ValueError(f"exclude_regions.{field} must be 0.0-1.0, got {val}")
+                raise ValueError(f"exclude_regions.{field_name} must be 0.0-1.0, got {val}")
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""

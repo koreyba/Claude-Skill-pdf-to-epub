@@ -3,7 +3,7 @@ Data models for validation results.
 """
 from dataclasses import dataclass
 from typing import List
-from ..core.text_segmenter import Chunk
+from core.text_segmenter import Chunk
 
 @dataclass(frozen=True)
 class ValidationFailure:
@@ -18,7 +18,7 @@ class ValidationResult:
     completeness_score: float  # 0.0 to 100.0
     missing_chunks: List[ValidationFailure]
     total_chunks: int
-    found_chunks: List['FoundChunk'] = None  # To be populated by completeness checker
+    found_chunks: List['FoundChunk'] | None = None  # To be populated by completeness checker
     order_score: float = 100.0   # Default to 100 until calculated
 
 @dataclass(frozen=True)

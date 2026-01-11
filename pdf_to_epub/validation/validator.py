@@ -4,9 +4,9 @@ import re
 from pathlib import Path
 from typing import Dict, Any, List
 
-from ..core.pdf_extractor import PDFExtractor
-from ..core.epub_extractor import EPUBExtractor
-from ..core.utils import get_logger
+from core.pdf_extractor import PDFExtractor
+from core.epub_extractor import EPUBExtractor
+from core.utils import get_logger
 from .completeness_checker import CompletenessChecker
 from .text_canonicalizer import canonicalize
 
@@ -75,38 +75,40 @@ class Validator:
         completeness_pass = completeness_score >= self.COMPLETENESS_THRESHOLD
         order_pass = order_score >= self.ORDER_THRESHOLD
 
-        report = {
-            "status": "pass" if completeness_pass and order_pass else "fail",
-            "summary": self._format_summary(completeness_score, order_score),
-            "details": {
-                "completeness": {
-                    "score": completeness_score,
-                    "passed": completeness_pass,
-                    "missing_count": len(missing_chunks),
-                    "missing_examples": self._missing_examples(missing_chunks),
-                    "missing": self._missing_details(missing_chunks),
-                    "approximate_count": len(approx_matches),
-                    "approximate_examples": self._approximate_examples(approx_matches),
-                    "approximate": approx_matches,
-                    "found": found_summary,
-                },
-                "order": {
-                    "score": order_score,
-                    "passed": order_pass,
-                },
-                "text_lengths": {
-                    "source_chars": len(source_text),
-                    "target_chars": len(target_text),
-                },
+        details: Dict[str, Any] = {
+            "completeness": {
+                "score": completeness_score,
+                "passed": completeness_pass,
+                "missing_count": len(missing_chunks),
+                "missing_examples": self._missing_examples(missing_chunks),
+                "missing": self._missing_details(missing_chunks),
+                "approximate_count": len(approx_matches),
+                "approximate_examples": self._approximate_examples(approx_matches),
+                "approximate": approx_matches,
+                "found": found_summary,
+            },
+            "order": {
+                "score": order_score,
+                "passed": order_pass,
+            },
+            "text_lengths": {
+                "source_chars": len(source_text),
+                "target_chars": len(target_text),
             },
         }
-
+        
         if run_epubcheck:
-            report["details"]["epubcheck"] = {
+            details["epubcheck"] = {
                 "enabled": True,
                 "skipped": True,
                 "reason": "not_implemented",
             }
+
+        report: Dict[str, Any] = {
+            "status": "pass" if completeness_pass and order_pass else "fail",
+            "summary": self._format_summary(completeness_score, order_score),
+            "details": details,
+        }
 
         return report
 

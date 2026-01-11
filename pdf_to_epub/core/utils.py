@@ -6,7 +6,6 @@ Contains logging helpers, path manipulation, and global constants.
 import logging
 import os
 from pathlib import Path
-from typing import Optional
 
 # Global Constants
 VERSION = "0.1.0"

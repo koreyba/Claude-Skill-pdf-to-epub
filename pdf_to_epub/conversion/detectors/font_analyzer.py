@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple
 from collections import defaultdict
 from .models import TextBlock
-from ...core.utils import get_logger
+from core.utils import get_logger
 
 logger = get_logger(__name__)
 
@@ -10,7 +10,7 @@ class FontAnalyzer:
     Analyzes font statistics to identify body text style and potential headings.
     """
     
-    def analyze(self, blocks: List[TextBlock]) -> Dict[str, str]:
+    def analyze(self, blocks: List[TextBlock]) -> Dict[Tuple[str, float, int], str]:
         """
         Returns a mapping of font keys to roles.
         Example: {('Arial', 12.0, 0): 'body', ('Arial', 24.0, 1): 'h1'}
@@ -20,7 +20,7 @@ class FontAnalyzer:
             
         # 1. Collect statistics (Area coverage is better than character count, 
         # but character count is easier if blocks have clean text)
-        stats = defaultdict(int) # (name, size, flags) -> total_len
+        stats: Dict[Tuple[str, float, int], int] = defaultdict(int) # (name, size, flags) -> total_len
         
         for b in blocks:
             key = (b.font_name, round(b.font_size, 1), b.flags)

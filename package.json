@@ -3,13 +3,17 @@
   "version": "0.1.0",
   "description": "PDF to EPUB Converter Tool",
   "scripts": {
-    "test": ".venv/Scripts/python -m pytest",
-    "test:v": ".venv/Scripts/python -m pytest -v",
-    "test:cov": ".venv/Scripts/python -m pytest --cov=pdf_to_epub.conversion --cov-report=term-missing",
-    "test:conversion": ".venv/Scripts/python -m pytest tests/conversion/ -v",
-    "test:validation": ".venv/Scripts/python -m pytest tests/validation/ -v",
-    "test:core": ".venv/Scripts/python -m pytest tests/core/ -v",
-    "test:watch": ".venv/Scripts/python -m pytest --tb=short -q"
+    "test": "py -m pytest",
+    "test:v": "py -m pytest -v",
+    "test:cov": "py -m pytest --cov=pdf_to_epub.conversion --cov-report=term-missing",
+    "test:conversion": "py -m pytest tests/conversion/ -v",
+    "test:validation": "py -m pytest tests/validation/ -v",
+    "test:core": "py -m pytest tests/core/ -v",
+    "test:watch": "py -m pytest --tb=short -q",
+    "lint": "py -m ruff check pdf_to_epub",
+    "lint:fix": "py -m ruff check pdf_to_epub --fix",
+    "typecheck": "py -m mypy pdf_to_epub --ignore-missing-imports",
+    "check": "py -m ruff check pdf_to_epub && py -m mypy pdf_to_epub --ignore-missing-imports"
   },
   "author": "",
   "license": "ISC"

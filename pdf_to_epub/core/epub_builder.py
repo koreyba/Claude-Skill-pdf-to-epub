@@ -3,16 +3,14 @@
 """EPUB file builder."""
 
 import tempfile
-import shutil
 import zipfile
 import uuid
 from pathlib import Path
 from datetime import datetime, timezone
-from lxml import etree
 
-from ..conversion.models import StructuredContent
-from ..conversion.detectors.footnote_detector import FootnoteDetector
-from ..conversion.detectors.endnote_formatter import EndnoteFormatter
+from conversion.models import StructuredContent
+from conversion.detectors.footnote_detector import FootnoteDetector
+from conversion.detectors.endnote_formatter import EndnoteFormatter
 
 
 class EPUBBuilder:
@@ -129,7 +127,7 @@ class EPUBBuilder:
             chapter_images = [img for img in images if img.page_num in chapter_pages]
 
             chapter_html = self._generate_chapter_xhtml(
-                chapter, i, endnotes_filename, chapter_images
+                chapter, i, endnotes_filename if endnotes_filename else None, chapter_images
             )
             chapter_path.write_text(chapter_html, encoding="utf-8")
 
@@ -146,7 +144,7 @@ class EPUBBuilder:
         return pages
     
     def _generate_chapter_xhtml(
-        self, chapter, chapter_num: int, endnotes_filename: str = None, images: list = None
+        self, chapter, chapter_num: int, endnotes_filename: str | None = None, images: list | None = None
     ) -> str:
         """Generate XHTML content for a chapter with embedded images."""
         images = images or []
@@ -219,7 +217,7 @@ class EPUBBuilder:
         formatter = EndnoteFormatter()
         return formatter.format_endnotes(chapter.content_blocks)
 
-    def _text_to_html_with_footnotes(self, text: str, endnotes_filename: str = None) -> str:
+    def _text_to_html_with_footnotes(self, text: str, endnotes_filename: str | None = None) -> str:
         """Convert plain text to HTML with paragraph tags and footnote hyperlinks."""
         if not text:
             return ""

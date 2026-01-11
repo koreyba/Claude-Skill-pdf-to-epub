@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List
 from .models import SemanticBlock
-from ...core.utils import get_logger
+from core.utils import get_logger
 
 logger = get_logger(__name__)
 

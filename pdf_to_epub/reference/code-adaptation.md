@@ -40,7 +40,7 @@ When the default `SimpleStrategy` doesn't work for a specific PDF type.
 # strategies/academic_strategy.py
 
 from .base_strategy import BaseStrategy
-from ..detectors.reading_order.xy_cut_sorter import XYCutSorter
+from detectors.reading_order.xy_cut_sorter import XYCutSorter
 
 class AcademicStrategy(BaseStrategy):
     """Strategy for academic papers with columns and citations."""

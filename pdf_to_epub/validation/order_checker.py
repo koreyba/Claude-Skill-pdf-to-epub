@@ -1,7 +1,7 @@
 # FROZEN: Do not modify - metrics must be reproducible
 # See ~/.claude/skills/pdf-to-epub/reference/architecture.md
 from typing import List
-from ..core.utils import get_logger
+from core.utils import get_logger
 from .models import FoundChunk
 from .lis import calculate_lis_length
 

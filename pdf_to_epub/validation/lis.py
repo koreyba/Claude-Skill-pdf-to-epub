@@ -18,7 +18,7 @@ def calculate_lis_length(sequence: List[int]) -> int:
     
     # specialized list to store the smallest tail of all increasing subsequences
     # of length i+1 in tails[i]
-    tails = []
+    tails: List[int] = []
     
     for x in sequence:
         # Find the first element in tails that is >= x

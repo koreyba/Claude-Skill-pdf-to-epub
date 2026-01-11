@@ -7,10 +7,10 @@ import ebooklib
 from ebooklib import epub
 from bs4 import BeautifulSoup
 from pathlib import Path
-from typing import Iterator, List, Dict, Any, Optional
+from typing import Iterator, Dict, Any, Optional
 
 from .utils import get_logger
-from ..validation.text_canonicalizer import canonicalize
+from validation.text_canonicalizer import canonicalize
 
 logger = get_logger(__name__)
 

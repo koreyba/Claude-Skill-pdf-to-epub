@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Optional, Union
 from dataclasses import asdict
 
-from .strategies import BaseStrategy, SimpleStrategy
+from .strategies import SimpleStrategy
 from .models import (
     ConversionConfig,
     ConversionResult,
@@ -20,7 +20,7 @@ from .models import (
     ImageOptimizationConfig,
     StructuredContent,
 )
-from ..core.epub_builder import EPUBBuilder
+from core.epub_builder import EPUBBuilder
 
 
 # Strategy registry
