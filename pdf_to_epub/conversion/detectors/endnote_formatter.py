@@ -5,8 +5,9 @@ from typing import List
 
 from .models import SemanticBlock
 
-# Pattern to extract endnote number and content
-ENDNOTE_PATTERN = re.compile(r'^(\d{1,2})\s{2,}(.*)$', re.DOTALL)
+# Pattern to extract endnote number and content.
+# Be permissive: PDFs vary (e.g., "12  Text", "12. Text", "12) Text").
+ENDNOTE_PATTERN = re.compile(r'^(\d{1,3})[.)]?\s+(.*)$', re.DOTALL)
 
 
 class EndnoteFormatter:

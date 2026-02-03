@@ -136,8 +136,15 @@ class ConversionReporter:
 
                 # Count endnotes (look for endnote markers)
                 if hasattr(chapter, 'is_endnotes') and chapter.is_endnotes:
-                    endnote_pattern = re.compile(r'(?:^|\n)(\d{1,3})\s{2,}')
-                    stats.epub_endnotes = len(endnote_pattern.findall(chapter_text))
+                    # Prefer structural count (more reliable than regex on merged text).
+                    if hasattr(chapter, "content_blocks"):
+                        stats.epub_endnotes = len([
+                            b for b in getattr(chapter, "content_blocks", [])
+                            if getattr(b, "role", None) == "endnote"
+                        ])
+                    else:
+                        endnote_pattern = re.compile(r'(?:^|\n)(\d{1,3})[.)]?\s+')
+                        stats.epub_endnotes = len(endnote_pattern.findall(chapter_text))
 
             # Count subchapter headings
             if hasattr(chapter, 'subchapters'):

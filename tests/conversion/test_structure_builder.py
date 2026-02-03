@@ -6,11 +6,33 @@ from pdf_to_epub.conversion.detectors.structure_builder import StructureBuilder,
 from pdf_to_epub.conversion.detectors.models import SemanticBlock, TextBlock
 
 
-def make_block(text: str, role: str = "body") -> SemanticBlock:
+def make_block(
+    text: str,
+    role: str = "body",
+    *,
+    page: int = 1,
+    x0: float = 0.0,
+    y0: float = 0.0,
+    x1: float = 100.0,
+    y1: float = 10.0,
+    font_name: str = "Arial",
+    font_size: float = 12.0,
+    flags: int = 0,
+    endnote_num: int | None = None,
+) -> SemanticBlock:
     """Helper to create SemanticBlock for testing."""
-    tb = TextBlock(text=text, page=1, x0=0, y0=0, x1=100, y1=10, 
-                   font_name="Arial", font_size=12.0, flags=0)
-    return SemanticBlock(original_block=tb, role=role)
+    tb = TextBlock(
+        text=text,
+        page=page,
+        x0=x0,
+        y0=y0,
+        x1=x1,
+        y1=y1,
+        font_name=font_name,
+        font_size=font_size,
+        flags=flags,
+    )
+    return SemanticBlock(original_block=tb, role=role, endnote_num=endnote_num)
 
 
 class TestStructureBuilderBuildChapters:
@@ -212,6 +234,27 @@ class TestStructureBuilderBuildChapters:
 
         main_text = " ".join(ch.get_text() for ch in chapters if not ch.is_endnotes)
         assert "ENDNOTES to Excerpt C" not in main_text
+
+    def test_endnotes_merge_continuation_blocks(self):
+        blocks = [
+            make_block("Chapter One", "h1", page=1),
+            make_block("Body text.", "body", page=1),
+            make_block("ENDNOTES", "body", page=2),
+            make_block("1  First line of note", "endnote", page=2, x0=50, endnote_num=1),
+            make_block("Continuation line of same note", "body", page=2, x0=120),
+            make_block("2  Second note starts", "endnote", page=2, x0=50, endnote_num=2),
+        ]
+
+        builder = StructureBuilder()
+        chapters = builder.build_chapters(blocks)
+
+        endnotes_chapter = next((ch for ch in chapters if ch.is_endnotes), None)
+        assert endnotes_chapter is not None
+
+        note1 = next((b for b in endnotes_chapter.content_blocks if b.endnote_num == 1), None)
+        assert note1 is not None
+        assert "First line of note" in note1.original_block.text
+        assert "Continuation line of same note" in note1.original_block.text
 
 
 class TestStructureBuilderMergeHeaders:
