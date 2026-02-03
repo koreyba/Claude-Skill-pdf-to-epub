@@ -27,6 +27,9 @@ class FootnoteDetector:
     - paren: (1), (12)
     - period: .1, .12 (after words)
     - superscript: word1, word12 (number immediately after letters)
+    - spaced: sentence. 12   Next (PDF extraction often inserts a space before the marker)
+    - spaced_closer: word 20 ]... (marker before a closing bracket/paren without an opener)
+    - keyword: See endnotes 2 and 8 (marker preceded by "note(s)" / "endnote(s)")
     """
 
     # Patterns for different footnote styles
@@ -39,6 +42,26 @@ class FootnoteDetector:
         'period': re.compile(r'(?<=\w)\.(\d{1,2})(?=\s|$|[,;:!?])'),
         # Superscript-like patterns (number at end of word without space)
         'superscript': re.compile(r'(?<=[a-zA-Z])(\d{1,2})(?=\s|$|[.,;:!?])'),
+        # sentence. 12   Next OR ...) 12 (end-of-paragraph)
+        # Important: do not match across newlines (list items often start on a new line).
+        'spaced': re.compile(
+            r'(?<=[.!?;:\)\]”"’\'])[\t ]+(\d{1,2})(?=(?:[\t ]{2,}|$|[\t ]*[,.;:!?…]))'
+        ),
+        # word 20 ]... (common extraction artifact where the opener is far away, so we only see the closer)
+        'spaced_closer': re.compile(
+            r'(?<=\w)[\t ]+(\d{1,2})(?=[\t ]*[\]\)])'
+        ),
+        # "See endnotes 2 and 8" / "see notes 2, 4" (case-insensitive).
+        # Keep this conservative: only link numbers immediately following the keyword.
+        'keyword': re.compile(r'(?i)\b(?:endnotes?|notes?)\s+(\d{1,2})\b'),
+    }
+
+    # Some patterns include surrounding context in the full match (e.g. leading spaces);
+    # we only want to replace the numeric part in those cases.
+    _SPAN_GROUP = {
+        "spaced": 1,
+        "spaced_closer": 1,
+        "keyword": 1,
     }
 
     def __init__(self, patterns: Optional[List[str]] = None):
@@ -46,10 +69,10 @@ class FootnoteDetector:
         Initialize detector with pattern selection.
 
         Args:
-            patterns: List of pattern types to use ('bracket', 'paren', 'period', 'superscript')
-                     If None, uses ['bracket', 'paren'] for backward compatibility.
+            patterns: List of pattern types to use ('bracket', 'paren', 'period', 'superscript', 'spaced', 'spaced_closer')
+                     If None, uses a conservative default set.
         """
-        self.active_patterns = patterns or ['bracket', 'paren']
+        self.active_patterns = patterns or ['bracket', 'paren', 'spaced', 'spaced_closer', 'keyword']
 
     def process(self, blocks: List[SemanticBlock]) -> List[SemanticBlock]:
         """
@@ -93,13 +116,21 @@ class FootnoteDetector:
                 continue
 
             for match in pattern.finditer(text):
-                num = int(match.group(1))
+                num_str = match.group(1)
+                num = int(num_str)
                 if 1 <= num <= 99:  # Reasonable range
+                    span_group = self._SPAN_GROUP.get(pattern_type, 0)
+                    if span_group == 0:
+                        start_pos, end_pos = match.start(), match.end()
+                        original_text = match.group(0)
+                    else:
+                        start_pos, end_pos = match.start(span_group), match.end(span_group)
+                        original_text = match.group(span_group)
                     refs.append(FootnoteRef(
                         number=num,
-                        original_text=match.group(0),
-                        start_pos=match.start(),
-                        end_pos=match.end()
+                        original_text=original_text,
+                        start_pos=start_pos,
+                        end_pos=end_pos
                     ))
 
         # Sort by position and remove duplicates (same position)

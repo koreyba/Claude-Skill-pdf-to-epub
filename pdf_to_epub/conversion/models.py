@@ -41,7 +41,7 @@ class HeadingConfig:
 class FootnoteConfig:
     """Footnote processing configuration."""
     enabled: bool = False
-    patterns: List[str] = field(default_factory=lambda: ['bracket', 'paren'])
+    patterns: List[str] = field(default_factory=lambda: ['bracket', 'paren', 'spaced', 'spaced_closer', 'keyword'])
     generate_backlinks: bool = True
 
 

@@ -68,6 +68,19 @@ class TestMultiColumnConfig:
         assert mc.threshold == 0.4
 
 
+class TestFootnoteConfig:
+    """Test FootnoteConfig dataclass."""
+
+    def test_default_patterns_include_spaced_markers(self):
+        """Defaults should catch common PDF-extraction endnote marker styles."""
+        fc = FootnoteConfig()
+        assert "bracket" in fc.patterns
+        assert "paren" in fc.patterns
+        assert "spaced" in fc.patterns
+        assert "spaced_closer" in fc.patterns
+        assert "keyword" in fc.patterns
+
+
 class TestBookMetadata:
     """Test BookMetadata dataclass."""
     
