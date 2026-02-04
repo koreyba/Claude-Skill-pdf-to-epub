@@ -62,6 +62,59 @@ class TestFootnoteDetector:
         assert refs[0].number == 1
         assert refs[1].number == 2
 
+    def test_find_spaced_references(self):
+        """Test detection of spaced markers like 'sentence. 5   Next'."""
+        detector = FootnoteDetector(patterns=['spaced'])
+        refs = detector.find_references("This is a sentence. 5   Next sentence starts here.")
+
+        assert len(refs) == 1
+        assert refs[0].number == 5
+        assert refs[0].original_text == "5"
+
+    def test_find_spaced_reference_at_end(self):
+        """Test detection when the marker is the last token in the string."""
+        detector = FootnoteDetector(patterns=['spaced'])
+        refs = detector.find_references("Ends with marker.) 7")
+
+        assert len(refs) == 1
+        assert refs[0].number == 7
+        assert refs[0].original_text == "7"
+
+    def test_spaced_does_not_cross_newlines(self):
+        """Ensure we don't accidentally link numbered list items on the next line."""
+        detector = FootnoteDetector(patterns=['spaced'])
+        refs = detector.find_references("Notice this.\n 1   First list item.")
+
+        assert len(refs) == 0
+
+    def test_find_spaced_closer_reference(self):
+        """Test detection of markers before a closer like 'word 20 ]'."""
+        detector = FootnoteDetector(patterns=['spaced_closer'])
+        refs = detector.find_references("... mean by transformation 20 ]....")
+
+        assert len(refs) == 1
+        assert refs[0].number == 20
+        assert refs[0].original_text == "20"
+
+    def test_find_keyword_references(self):
+        """Test detection of references like 'See endnotes 2 and 8'."""
+        detector = FootnoteDetector(patterns=['keyword'])
+        refs = detector.find_references("See endnotes 2 and 8 for more details.")
+
+        assert len(refs) == 1
+        assert refs[0].number == 2
+        assert refs[0].original_text == "2"
+
+    def test_spaced_does_not_match_fraction_like_20_over_20(self):
+        detector = FootnoteDetector(patterns=['spaced'])
+        refs = detector.find_references("With 20/20 hindsight, it becomes clear.")
+        assert len(refs) == 0
+
+    def test_spaced_does_not_match_figure_caption_numbering(self):
+        detector = FootnoteDetector(patterns=['spaced'])
+        refs = detector.find_references("Figure 2.  8 Major Paradigms or Methodologies")
+        assert len(refs) == 0
+
     def test_ignores_large_numbers(self):
         """Test that numbers > 99 are ignored."""
         detector = FootnoteDetector(patterns=['bracket'])

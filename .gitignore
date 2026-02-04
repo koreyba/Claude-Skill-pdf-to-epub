@@ -29,6 +29,10 @@ build/
 dist/
 *.egg-info/
 
+# Local debug artifacts
+debug/
+*.epub
+
 # Logs
 *.log
 
